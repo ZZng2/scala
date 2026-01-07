@@ -1,0 +1,118 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  /* Design System Colors */
+  --primary: #FF6B35;
+  --primary-foreground: #FFFFFF;
+  --secondary: #FFB4A2;
+  --secondary-foreground: #212121;
+  --background: #FFFFFF;
+  --foreground: #212121;
+  --surface: #F8F9FA;
+  --muted: #F8F9FA;
+  --muted-foreground: #757575;
+  --card: #FFFFFF;
+  --card-foreground: #212121;
+  --popover: #FFFFFF;
+  --popover-foreground: #212121;
+  --border: #E0E0E0;
+  --input: #F8F9FA; /* Surface color for inputs */
+  --ring: #FF6B35;
+  --radius: 0.5rem; /* 8px */
+  
+  /* Additional Shadcn/Tailwind Defaults Mapped */
+  --destructive: #F44336;
+  --destructive-foreground: #FFFFFF;
+  --accent: #F8F9FA;
+  --accent-foreground: #212121;
+  
+  --chart-1: #FF6B35;
+  --chart-2: #FFB4A2;
+  --chart-3: #2196F3;
+  --chart-4: #4CAF50;
+  --chart-5: #FFC107;
+
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #212121;
+  --sidebar-primary: #FF6B35;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #F8F9FA;
+  --sidebar-accent-foreground: #212121;
+  --sidebar-border: #E0E0E0;
+  --sidebar-ring: #FF6B35;
+
+  --font-family-sans: "Pretendard", "Inter", sans-serif;
+}
+
+.dark {
+  /* Minimal dark mode support if needed, though specs say "Pure White" theme */
+  --background: #1a1a1a;
+  --foreground: #ffffff;
+  --card: #2a2a2a;
+  --card-foreground: #ffffff;
+  --popover: #2a2a2a;
+  --popover-foreground: #ffffff;
+  --primary: #FF6B35;
+  --primary-foreground: #FFFFFF;
+  --secondary: #FFB4A2;
+  --secondary-foreground: #212121;
+  --muted: #333333;
+  --muted-foreground: #a0a0a0;
+  --accent: #333333;
+  --accent-foreground: #ffffff;
+  --destructive: #cf6679;
+  --destructive-foreground: #ffffff;
+  --border: #444444;
+  --input: #333333;
+  --ring: #FF6B35;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-surface: var(--surface);
+  
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  
+  --font-sans: var(--font-family-sans);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-sans;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}

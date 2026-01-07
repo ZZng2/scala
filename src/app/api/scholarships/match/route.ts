@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/server';
 
 /**
  * POST /api/scholarships/match
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
             is_national_merit,
         } = body;
 
-        const supabase = createServerClient();
+        const supabase = await createClient();
 
         // 매칭 함수 호출
         const { data, error } = await supabase.rpc('match_scholarships', {

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@/lib/supabase';
+import { createAdminClient } from '@/lib/supabase/server';
 
 /**
  * POST /api/push/send
@@ -14,7 +14,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'title and body are required' }, { status: 400 });
         }
 
-        const supabase = createServerClient();
+        const supabase = createAdminClient();
 
         // 1. 대상 유저 조회 (PUSH 활성화 + FCM 토큰 있는 유저)
         let matchedUsers;
@@ -89,7 +89,7 @@ export async function GET(request: Request) {
         const { searchParams } = new URL(request.url);
         const limit = parseInt(searchParams.get('limit') || '20');
 
-        const supabase = createServerClient();
+        const supabase = createAdminClient();
 
         const { data, error } = await supabase
             .from('push_logs')

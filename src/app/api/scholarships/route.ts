@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@/lib/supabase';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
 
 /**
  * GET /api/scholarships
@@ -13,7 +13,7 @@ export async function GET(request: Request) {
         const limit = parseInt(searchParams.get('limit') || '50');
         const offset = parseInt(searchParams.get('offset') || '0');
 
-        const supabase = createServerClient();
+        const supabase = await createClient();
 
         let query = supabase
             .from('scholarships')
@@ -50,7 +50,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
     try {
         const body = await request.json();
-        const supabase = createServerClient();
+        const supabase = createAdminClient();
 
         const { data, error } = await supabase
             .from('scholarships')

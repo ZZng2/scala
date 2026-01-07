@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@/lib/supabase';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
 
 /**
  * GET /api/scholarships/[id]
@@ -11,9 +11,10 @@ export async function GET(
 ) {
     try {
         const { id } = await params;
-        const supabase = createServerClient();
+        const supabase = await createClient();
 
         // 조회수 증가
+        // @ts-ignore
         await supabase.rpc('increment_views', { scholarship_id: id }).catch(() => {
             // RPC 없으면 무시
         });
@@ -47,7 +48,7 @@ export async function PATCH(
     try {
         const { id } = await params;
         const body = await request.json();
-        const supabase = createServerClient();
+        const supabase = createAdminClient();
 
         const { data, error } = await supabase
             .from('scholarships')
@@ -78,7 +79,7 @@ export async function DELETE(
 ) {
     try {
         const { id } = await params;
-        const supabase = createServerClient();
+        const supabase = createAdminClient();
 
         const { error } = await supabase
             .from('scholarships')

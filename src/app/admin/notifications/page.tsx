@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { supabase } from '@/lib/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -19,7 +19,7 @@ interface Scholarship {
 }
 
 export default function AdminNotificationsPage() {
-    const supabase = createClientComponentClient();
+
     const [loading, setLoading] = useState(false);
     const [scholarships, setScholarships] = useState<Scholarship[]>([]);
 

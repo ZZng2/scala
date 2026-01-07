@@ -8,6 +8,7 @@ interface MetricsCardProps {
     title: string;
     value: string | number;
     change?: number; // 전월 대비 변화율 (%)
+    changeLabel?: string; // 변화율 설명 (기본: 전월 대비)
     icon?: React.ReactNode;
     description?: string;
 }
@@ -16,7 +17,7 @@ interface MetricsCardProps {
  * MetricsCard
  * 대시보드 핵심 지표 카드
  */
-export function MetricsCard({ title, value, change, icon, description }: MetricsCardProps) {
+export function MetricsCard({ title, value, change, changeLabel, icon, description }: MetricsCardProps) {
     const getTrendIcon = () => {
         if (change === undefined) return null;
         if (change > 0) return <TrendingUp className="w-4 h-4" />;
@@ -49,7 +50,7 @@ export function MetricsCard({ title, value, change, icon, description }: Metrics
                     <div className={cn("flex items-center gap-1 text-sm", getTrendColor())}>
                         {getTrendIcon()}
                         <span>{change > 0 ? '+' : ''}{change}%</span>
-                        <span className="text-[#757575] ml-1">전월 대비</span>
+                        <span className="text-[#757575] ml-1">{changeLabel || '전월 대비'}</span>
                     </div>
                 )}
 

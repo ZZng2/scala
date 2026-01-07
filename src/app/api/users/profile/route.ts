@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/server';
 
 /**
  * POST /api/users/profile
@@ -14,7 +14,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'userId is required' }, { status: 400 });
         }
 
-        const supabase = createServerClient();
+        const supabase = await createClient();
 
         // Upsert 프로필
         const { data, error } = await supabase
@@ -51,7 +51,7 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'userId is required' }, { status: 400 });
         }
 
-        const supabase = createServerClient();
+        const supabase = await createClient();
 
         const { data, error } = await supabase
             .from('user_profiles')

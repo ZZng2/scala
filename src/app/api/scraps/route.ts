@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createServerClient } from '@/lib/supabase';
+import { createClient } from '@/lib/supabase/server';
 
 /**
  * GET /api/scraps
@@ -14,7 +14,7 @@ export async function GET(request: Request) {
             return NextResponse.json({ error: 'userId is required' }, { status: 400 });
         }
 
-        const supabase = createServerClient();
+        const supabase = await createClient();
 
         const { data, error } = await supabase
             .from('scraps')
@@ -58,7 +58,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'userId and scholarshipId are required' }, { status: 400 });
         }
 
-        const supabase = createServerClient();
+        const supabase = await createClient();
 
         // 스크랩 추가
         const { data, error } = await supabase
@@ -77,6 +77,7 @@ export async function POST(request: Request) {
         }
 
         // 장학금 스크랩 수 증가
+        // @ts-ignore
         await supabase.rpc('increment_scraps', { scholarship_id: scholarshipId }).catch(() => { });
 
         return NextResponse.json({ data }, { status: 201 });
@@ -100,7 +101,7 @@ export async function DELETE(request: Request) {
             return NextResponse.json({ error: 'userId and scholarshipId are required' }, { status: 400 });
         }
 
-        const supabase = createServerClient();
+        const supabase = await createClient();
 
         const { error } = await supabase
             .from('scraps')
@@ -114,6 +115,7 @@ export async function DELETE(request: Request) {
         }
 
         // 장학금 스크랩 수 감소
+        // @ts-ignore
         await supabase.rpc('decrement_scraps', { scholarship_id: scholarshipId }).catch(() => { });
 
         return NextResponse.json({ success: true });

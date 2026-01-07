@@ -55,18 +55,17 @@ export default function ScrapsPage() {
                     const today = new Date();
                     const deadline = new Date(s.deadline);
                     const diffTime = deadline.getTime() - today.getTime();
-                    const dDay = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    const d_day = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
                     return {
                         id: s.id,
                         title: s.title,
-                        foundation: s.organization || s.title, // organization 없으면 title 사용
-                        tags: s.category === 'mixed' ? ['생활비', '등록금'] : [s.category === 'tuition' ? '등록금' : '생활비'],
-                        dDay: dDay,
-                        amount: s.amount_text || '금액 미정',
-                        isScrapped: true, // 찜 목록이니까 당연히 true
-                        viewCount: s.views,
-                        isClosed: s.is_closed
+                        category: s.category,
+                        amount_text: s.amount_text || '금액 미정',
+                        deadline: s.deadline,
+                        d_day: d_day,
+                        is_closed: s.is_closed,
+                        is_scrapped: true
                     };
                 });
 
@@ -137,7 +136,7 @@ export default function ScrapsPage() {
                                 key={scholarship.id}
                                 scholarship={scholarship}
                                 showScrapButton
-                                onScrapToggle={(isScrapped) => handleScrapToggle(scholarship.id, isScrapped)}
+                                onScrapToggle={handleScrapToggle}
                             />
                         ))}
                     </div>

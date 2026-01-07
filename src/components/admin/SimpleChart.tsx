@@ -7,6 +7,7 @@ interface SimpleChartProps {
     data: { label: string; value: number }[];
     color?: string;
     type?: 'bar' | 'line';
+    emptyMessage?: string;
 }
 
 /**
@@ -14,14 +15,18 @@ interface SimpleChartProps {
  * 간단한 바/라인 차트 컴포넌트
  * (실제 서비스에서는 recharts 사용 권장)
  */
-export function SimpleChart({ title, data, color = '#FF6B35', type = 'bar' }: SimpleChartProps) {
+export function SimpleChart({ title, data, color = '#FF6B35', type = 'bar', emptyMessage }: SimpleChartProps) {
     const maxValue = Math.max(...data.map(d => d.value));
 
     return (
         <div className="bg-white rounded-xl p-6 border border-[#E0E0E0] shadow-sm">
             <h3 className="text-lg font-bold text-[#212121] mb-6">{title}</h3>
 
-            {type === 'bar' ? (
+            {data.length === 0 && emptyMessage ? (
+                <div className="h-48 flex items-center justify-center text-[#757575] text-sm">
+                    {emptyMessage}
+                </div>
+            ) : type === 'bar' ? (
                 <div className="space-y-4">
                     {data.map((item, index) => (
                         <div key={index} className="space-y-1">

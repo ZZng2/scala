@@ -79,7 +79,8 @@ export default function ScholarshipDetailPage() {
                 // 5. Increment View Count (Optimistic or Fire-and-forget)
                 // API Route에서 처리하는게 더 안전하지만 클라이언트에서 호출했으므로 RPC 호출 시도
                 /* 
-                supabase.rpc('increment_views', { scholarship_id: id }).then(({ error }) => {
+                // @ts-ignore
+            supabase.rpc('increment_views', { scholarship_id: id }).then(({ error }) => {
                    if (error) console.error('Failed to increment view:', error);
                 });
                 */

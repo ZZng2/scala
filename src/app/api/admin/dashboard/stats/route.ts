@@ -1,9 +1,8 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = await createClient();
 
     try {
         // 1. Check Session
@@ -36,6 +35,7 @@ export async function GET(request: Request) {
 
         // Add today's users to recent activity later
         const todayUsersCount = recentUsers?.filter(u => {
+            if (!u.created_at) return false;
             const d = new Date(u.created_at);
             const today = new Date();
             return d.getDate() === today.getDate() && d.getMonth() === today.getMonth();
@@ -52,6 +52,7 @@ export async function GET(request: Request) {
         }
 
         recentUsers?.forEach(user => {
+            if (!user.created_at) return;
             const date = new Date(user.created_at);
             const dateStr = `${date.getMonth() + 1}/${date.getDate()}`;
             if (dailySignupsMap.has(dateStr)) {
@@ -92,7 +93,7 @@ export async function GET(request: Request) {
                 detail: `대상: ${p.target_user_count}명`,
                 time: p.sent_at
             })) || [])
-        ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+        ].sort((a, b) => new Date(b.time || 0).getTime() - new Date(a.time || 0).getTime())
             .slice(0, 5); // Start with top 5
 
         return NextResponse.json({

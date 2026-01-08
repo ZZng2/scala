@@ -26,7 +26,8 @@ export default function AdminDashboardPage() {
                 setData(json);
             } catch (error) {
                 console.error('Failed to fetch dashboard stats:', error);
-                toast.error('대시보드 데이터를 불러오지 못했습니다.');
+                const errorMessage = error instanceof Error ? error.message : '대시보드 데이터를 불러오지 못했습니다.';
+                toast.error(errorMessage);
             } finally {
                 setLoading(false);
             }

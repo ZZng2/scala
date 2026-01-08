@@ -1,24 +1,42 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createAdminClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
+    console.log('Admin Dashboard API Called');
+
+    // 환경변수 체크
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+        console.error('Critical Error: SUPABASE_SERVICE_ROLE_KEY is missing');
+        return NextResponse.json({ error: 'Server Configuration Error: Service Role Key missing' }, { status: 500 });
+    }
+
     const supabase = await createClient();
+    const adminClient = createAdminClient();
 
     try {
         // 1. Check Session
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
-            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+
+        if (sessionError) {
+            console.error('Session Error:', sessionError);
+            return NextResponse.json({ error: 'Session Error' }, { status: 401 });
         }
 
-        // 2. Fetch Metrics
+        if (!session) {
+            console.error('No Active Session Found');
+            return NextResponse.json({ error: 'Unauthorized: No session' }, { status: 401 });
+        }
+
+        console.log('Session Validated:', session.user.id);
+
+        // 2. Fetch Metrics (Using Admin Client to bypass RLS)
         // 2.1 Total Users
-        const { count: totalUsers } = await supabase
+        const { count: totalUsers } = await adminClient
             .from('users')
             .select('*', { count: 'exact', head: true });
 
         // 2.2 Total Push Sent (using push_logs)
-        const { count: totalPushSent } = await supabase
+        const { count: totalPushSent } = await adminClient
             .from('push_logs')
             .select('*', { count: 'exact', head: true });
 
@@ -27,7 +45,7 @@ export async function GET(request: Request) {
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6);
         sevenDaysAgo.setHours(0, 0, 0, 0);
 
-        const { data: recentUsers } = await supabase
+        const { data: recentUsers } = await adminClient
             .from('users')
             .select('created_at')
             .gte('created_at', sevenDaysAgo.toISOString())
@@ -66,14 +84,14 @@ export async function GET(request: Request) {
 
         // 2.4 Recent Activity (Mixed Logs)
         // 2.4.1 Recent Scholarships
-        const { data: recentScholarships } = await supabase
+        const { data: recentScholarships } = await adminClient
             .from('scholarships')
             .select('title, created_at')
             .order('created_at', { ascending: false })
             .limit(3);
 
         // 2.4.2 Recent Pushes
-        const { data: recentPushes } = await supabase
+        const { data: recentPushes } = await adminClient
             .from('push_logs')
             .select('title, sent_at, target_user_count')
             .order('sent_at', { ascending: false })
@@ -109,6 +127,10 @@ export async function GET(request: Request) {
         });
 
     } catch (error: any) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        console.error('Dashboard Stats API Error:', error);
+        return NextResponse.json({
+            error: `Internal Server Error: ${error.message}`,
+            details: error.toString()
+        }, { status: 500 });
     }
 }

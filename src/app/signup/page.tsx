@@ -1,8 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/lib/supabase/client';
 
 /**
  * SignupPage
@@ -13,19 +14,48 @@ import { Button } from '@/components/ui/button';
  * - 이메일 인증 (Magic Link)
  */
 export default function SignupPage() {
-    const handleKakaoLogin = () => {
-        // TODO: Supabase Auth - Kakao OAuth
-        console.log('Kakao login');
-        // 임시로 로그인 성공 처리 (데모용)
-        localStorage.setItem('auth_token', 'demo_token');
-        window.location.href = '/home';
+    const [isLoading, setIsLoading] = useState(false);
+
+    const handleKakaoLogin = async () => {
+        setIsLoading(true);
+        try {
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'kakao',
+                options: {
+                    redirectTo: `${window.location.origin}/auth/callback`
+                }
+            });
+
+            if (error) {
+                console.error('Kakao login error:', error);
+                alert('카카오 로그인에 실패했습니다.');
+                setIsLoading(false);
+            }
+        } catch (err) {
+            console.error('Unexpected error:', err);
+            setIsLoading(false);
+        }
     };
 
-    const handleGoogleLogin = () => {
-        // TODO: Supabase Auth - Google OAuth
-        console.log('Google login');
-        localStorage.setItem('auth_token', 'demo_token');
-        window.location.href = '/home';
+    const handleGoogleLogin = async () => {
+        setIsLoading(true);
+        try {
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: 'google',
+                options: {
+                    redirectTo: `${window.location.origin}/auth/callback`
+                }
+            });
+
+            if (error) {
+                console.error('Google login error:', error);
+                alert('구글 로그인에 실패했습니다.');
+                setIsLoading(false);
+            }
+        } catch (err) {
+            console.error('Unexpected error:', err);
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -51,7 +81,8 @@ export default function SignupPage() {
                 <div className="space-y-3 mb-6">
                     <button
                         onClick={handleKakaoLogin}
-                        className="w-full h-12 bg-[#FEE500] text-[#191919] font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#FDD835] transition-colors"
+                        disabled={isLoading}
+                        className="w-full h-12 bg-[#FEE500] text-[#191919] font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#FDD835] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                             <path
@@ -61,12 +92,13 @@ export default function SignupPage() {
                                 fill="#191919"
                             />
                         </svg>
-                        카카오로 시작하기
+                        {isLoading ? '로그인 중...' : '카카오로 시작하기'}
                     </button>
 
                     <button
                         onClick={handleGoogleLogin}
-                        className="w-full h-12 bg-white border border-[#E0E0E0] text-[#212121] font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#F8F9FA] transition-colors"
+                        disabled={isLoading}
+                        className="w-full h-12 bg-white border border-[#E0E0E0] text-[#212121] font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#F8F9FA] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                             <path
@@ -86,7 +118,7 @@ export default function SignupPage() {
                                 fill="#1976D2"
                             />
                         </svg>
-                        Google로 시작하기
+                        {isLoading ? '로그인 중...' : 'Google로 시작하기'}
                     </button>
                 </div>
 

@@ -14,7 +14,11 @@ CREATE TABLE IF NOT EXISTS public.users (
   updated_at TIMESTAMPTZ DEFAULT NOW(),
   fcm_token TEXT,
   push_enabled BOOLEAN DEFAULT TRUE,
-  last_login_at TIMESTAMPTZ
+  last_login_at TIMESTAMPTZ,
+  -- 온보딩 관련 필드 (Step 2)
+  admission_year INTEGER, -- 입학년도 (2026년 입학생 = 새내기, 학점 0 처리)
+  is_interview_agreed BOOLEAN DEFAULT FALSE, -- 인터뷰 동의 여부
+  onboarding_completed BOOLEAN DEFAULT FALSE -- 온보딩 완료 여부
 );
 
 -- ========== 2. User Profiles 테이블 ==========
@@ -113,11 +117,14 @@ CREATE INDEX IF NOT EXISTS idx_user_profiles_user_id ON public.user_profiles(use
 
 -- ========== RLS (Row Level Security) ==========
 
--- Users: 본인만 조회/수정 가능
+-- Users: 본인만 조회/수정 가능, 신규 사용자는 자신의 레코드 생성 가능
 ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can view own data" ON public.users
   FOR SELECT USING (auth.uid() = id);
+
+CREATE POLICY "Users can insert own data" ON public.users
+  FOR INSERT WITH CHECK (auth.uid() = id);
 
 CREATE POLICY "Users can update own data" ON public.users
   FOR UPDATE USING (auth.uid() = id);

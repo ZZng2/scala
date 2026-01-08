@@ -2,41 +2,54 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase/client';
 
 /**
  * 메인 페이지 - 라우팅 분기점
  * 
  * PRD Global Routing Rule:
- * 1. Token 보유 유저 (회원): → /home
- * 2. Token 없음 + 임시 데이터 보유 (비회원 재방문): → /home
- * 3. Token 없음 + 임시 데이터 없음 (신규 방문자): → /landing
+ * 1. Supabase 세션 있음 (회원): → /home (미들웨어가 온보딩 체크)
+ * 2. 세션 없음 + 임시 데이터 보유 (비회원 재방문): → /home
+ * 3. 세션 없음 + 임시 데이터 없음 (신규 방문자): → /landing
  */
 export default function Home() {
   const router = useRouter();
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
-    // Check auth token
-    const token = localStorage.getItem('auth_token');
+    checkAuthAndRedirect();
+  }, []);
 
-    if (token) {
-      // Case 1: 회원 - 바로 홈으로
-      router.replace('/home');
-      return;
+  const checkAuthAndRedirect = async () => {
+    try {
+      // Supabase 세션 체크
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (session) {
+        // Case 1: 회원 - 홈으로 (Auth Callback에서 온보딩 체크 완료)
+        router.replace('/home');
+        return;
+      }
+
+      // Check temp user data (비회원)
+      const tempData = localStorage.getItem('temp_user_data');
+
+      if (tempData) {
+        // Case 2: 비회원 재방문 - 홈으로 (StickyBar 표시됨)
+        router.replace('/home');
+        return;
+      }
+
+      // Case 3: 신규 방문자 - 랜딩으로
+      router.replace('/landing');
+    } catch (error) {
+      console.error('Auth check error:', error);
+      // 에러 발생 시 랜딩으로
+      router.replace('/landing');
+    } finally {
+      setIsChecking(false);
     }
-
-    // Check temp user data
-    const tempData = localStorage.getItem('temp_user_data');
-
-    if (tempData) {
-      // Case 2: 비회원 재방문 - 홈으로 (StickyBar 표시됨)
-      router.replace('/home');
-      return;
-    }
-
-    // Case 3: 신규 방문자 - 랜딩으로
-    router.replace('/landing');
-  }, [router]);
+  };
 
   // 로딩 화면 (라우팅 전)
   if (isChecking) {

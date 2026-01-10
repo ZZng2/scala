@@ -1,8 +1,11 @@
 import { NextResponse } from 'next/server';
-import { createAdminClient } from '@/lib/supabase/server';
+import { createAdminClient, isAdmin } from '@/lib/supabase/server';
 
 export async function GET() {
     try {
+        if (!await isAdmin()) {
+            return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+        }
         const supabase = createAdminClient();
 
         const { data } = await supabase
@@ -36,6 +39,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
     try {
+        if (!await isAdmin()) {
+            return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+        }
         const body = await request.json();
         const { pushEnabled } = body;
 

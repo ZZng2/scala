@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient, createAdminClient } from '@/lib/supabase/server';
+import { createClient, createAdminClient, isAdmin } from '@/lib/supabase/server';
 
 /**
  * GET /api/scholarships
@@ -10,7 +10,7 @@ export async function GET(request: Request) {
         const { searchParams } = new URL(request.url);
         const category = searchParams.get('category');
         const isOpen = searchParams.get('isOpen');
-        const limit = parseInt(searchParams.get('limit') || '50');
+        const limit = parseInt(searchParams.get('limit') || '100'); // 기본값 50 -> 100 으로 상향 (한번에 많이 볼 수 있게)
         const offset = parseInt(searchParams.get('offset') || '0');
 
         const supabase = await createClient();
@@ -49,6 +49,10 @@ export async function GET(request: Request) {
  */
 export async function POST(request: Request) {
     try {
+        if (!await isAdmin()) {
+            return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+        }
+
         const body = await request.json();
         const supabase = createAdminClient();
 
@@ -64,6 +68,41 @@ export async function POST(request: Request) {
         }
 
         return NextResponse.json({ data }, { status: 201 });
+    } catch (error) {
+        console.error('Unexpected error:', error);
+        return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    }
+}
+
+/**
+ * DELETE /api/scholarships
+ * 장학금 대량 삭제 (Admin)
+ */
+export async function DELETE(request: Request) {
+    try {
+        if (!await isAdmin()) {
+            return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+        }
+
+        const { ids } = await request.json();
+
+        if (!ids || !Array.isArray(ids) || ids.length === 0) {
+            return NextResponse.json({ error: 'Invalid IDs provided' }, { status: 400 });
+        }
+
+        const supabase = createAdminClient();
+
+        const { error } = await supabase
+            .from('scholarships')
+            .delete()
+            .in('id', ids);
+
+        if (error) {
+            console.error('Error bulk deleting scholarships:', error);
+            return NextResponse.json({ error: error.message }, { status: 500 });
+        }
+
+        return NextResponse.json({ success: true, count: ids.length });
     } catch (error) {
         console.error('Unexpected error:', error);
         return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

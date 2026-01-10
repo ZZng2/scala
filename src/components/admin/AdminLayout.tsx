@@ -94,7 +94,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                 {/* Bottom: Logout */}
                 <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-[#E0E0E0]">
                     <button
-                        onClick={() => {
+                        onClick={async () => {
+                            const { supabase } = await import('@/lib/supabase/client');
+                            await supabase.auth.signOut();
                             localStorage.removeItem('auth_token');
                             window.location.href = '/login';
                         }}

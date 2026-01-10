@@ -14,6 +14,17 @@ export default function LoginPage() {
     const [email, setEmail] = useState('');
     const [isSent, setIsSent] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [currentUser, setCurrentUser] = useState<any>(null);
+
+    React.useEffect(() => {
+        const checkUser = async () => {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                setCurrentUser(user);
+            }
+        };
+        checkUser();
+    }, []);
 
     const handleMagicLink = async () => {
         setIsLoading(true);
@@ -98,6 +109,19 @@ export default function LoginPage() {
                     <h2 className="text-2xl font-bold text-[#212121] mb-2">
                         로그인
                     </h2>
+                    {currentUser && (
+                        <div className="mt-4 p-4 bg-green-50 rounded-lg border border-green-200">
+                            <p className="text-sm text-green-700 mb-2">
+                                현재 <strong>{currentUser.email}</strong> 님으로 로그인되어 있습니다.
+                            </p>
+                            <Link
+                                href="/admin"
+                                className="inline-block px-4 py-2 bg-green-600 text-white text-sm font-medium rounded hover:bg-green-700 transition-colors"
+                            >
+                                관리자 대시보드로 이동
+                            </Link>
+                        </div>
+                    )}
                 </div>
 
                 {isSent ? (

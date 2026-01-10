@@ -23,31 +23,36 @@ export function StepGrade({ grade, enrollmentStatus, onChange, onNext, onPrev }:
         <div className="flex flex-col gap-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="space-y-2">
                 <h2 className="text-2xl font-bold text-[#212121]">학년과 재학 상태를<br />알려주세요</h2>
+                <p className="text-sm text-[#757575]">2026년 신입생은 1학년을 선택해주세요.</p>
             </div>
 
             <div className="space-y-6">
                 <div className="space-y-3">
                     <label className="text-base font-semibold text-[#212121]">학년</label>
-                    <div className="grid grid-cols-4 gap-3">
+                    <div className="grid grid-cols-2 gap-3">
                         {[1, 2, 3, 4].map((g) => (
                             <button
                                 key={g}
                                 onClick={() => onChange({ grade: g, enrollment_status: enrollmentStatus })}
                                 className={cn(
-                                    "h-12 rounded-lg border text-base font-medium transition-all",
+                                    "h-14 rounded-lg border text-base font-medium transition-all flex flex-col items-center justify-center",
                                     grade === g
                                         ? "border-[#FF6B35] bg-[#FF6B35]/5 text-[#FF6B35]"
                                         : "border-[#E0E0E0] bg-white text-[#757575] hover:bg-[#F8F9FA]"
                                 )}
                             >
-                                {g}학년
+                                <span>{g}학년</span>
+                                {g === 1 && <span className="text-[10px] opacity-70">(2026 신입생 포함)</span>}
                             </button>
                         ))}
                     </div>
                 </div>
 
                 <div className="space-y-3">
-                    <label className="text-base font-semibold text-[#212121]">재학 상태</label>
+                    <div className="space-y-1">
+                        <label className="text-base font-semibold text-[#212121]">재학 상태</label>
+                        <p className="text-[12px] text-[#757575]">2026년 1학기 기준으로 설정해주세요</p>
+                    </div>
                     <div className="grid grid-cols-2 gap-3">
                         {[
                             { value: 'enrolled', label: '재학' },

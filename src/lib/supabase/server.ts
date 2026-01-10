@@ -48,3 +48,22 @@ export function createAdminClient() {
         }
     )
 }
+/**
+ * 현재 세션 사용자가 관리자인지 확인
+ */
+export async function isAdmin() {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) return false;
+
+    const adminClient = createAdminClient();
+    const { data, error } = await adminClient
+        .from('users')
+        .select('is_admin')
+        .eq('id', user.id)
+        .single();
+
+    if (error || !data) return false;
+    return !!data.is_admin;
+}

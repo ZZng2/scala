@@ -7,13 +7,29 @@ export type Json =
     | Json[]
 
 export type Database = {
-    // Allows to automatically instantiate createClient with right options
-    // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
-    __InternalSupabase: {
-        PostgrestVersion: "14.1"
-    }
     public: {
         Tables: {
+            admin_settings: {
+                Row: {
+                    id: string
+                    key: string
+                    updated_at: string | null
+                    value: Json
+                }
+                Insert: {
+                    id?: string
+                    key: string
+                    updated_at?: string | null
+                    value: Json
+                }
+                Update: {
+                    id?: string
+                    key?: string
+                    updated_at?: string | null
+                    value?: Json
+                }
+                Relationships: []
+            }
             click_events: {
                 Row: {
                     created_at: string | null
@@ -69,33 +85,33 @@ export type Database = {
             push_logs: {
                 Row: {
                     body: string
-                    clicked_count: number | null
                     created_at: string | null
                     id: string
                     scholarship_id: string | null
                     sent_at: string | null
                     target_user_count: number
                     title: string
+                    clicked_count: number | null
                 }
                 Insert: {
                     body: string
-                    clicked_count?: number | null
                     created_at?: string | null
                     id?: string
                     scholarship_id?: string | null
                     sent_at?: string | null
                     target_user_count?: number
                     title: string
+                    clicked_count?: number | null
                 }
                 Update: {
                     body?: string
-                    clicked_count?: number | null
                     created_at?: string | null
                     id?: string
                     scholarship_id?: string | null
                     sent_at?: string | null
                     target_user_count?: number
                     title?: string
+                    clicked_count?: number | null
                 }
                 Relationships: [
                     {
@@ -104,20 +120,18 @@ export type Database = {
                         isOneToOne: false
                         referencedRelation: "scholarships"
                         referencedColumns: ["id"]
-                    },
+                    }
                 ]
             }
             scholarships: {
                 Row: {
                     amount_text: string | null
-                    category: string
+                    category: string | null
                     created_at: string | null
-                    deadline: string
-                    description: string | null
-                    documents_required: string | null
+                    deadline: string | null
+                    enrollment_status: string[] | null
                     id: string
                     is_closed: boolean | null
-                    is_duplicate_allowed: boolean | null
                     max_income_bracket: number | null
                     min_gpa: number | null
                     organization: string | null
@@ -132,19 +146,16 @@ export type Database = {
                     target_summary: string | null
                     title: string
                     updated_at: string | null
-                    url: string | null
                     views: number | null
                 }
                 Insert: {
                     amount_text?: string | null
-                    category: string
+                    category?: string | null
                     created_at?: string | null
-                    deadline: string
-                    description?: string | null
-                    documents_required?: string | null
+                    deadline?: string | null
+                    enrollment_status?: string[] | null
                     id?: string
                     is_closed?: boolean | null
-                    is_duplicate_allowed?: boolean | null
                     max_income_bracket?: number | null
                     min_gpa?: number | null
                     organization?: string | null
@@ -159,19 +170,16 @@ export type Database = {
                     target_summary?: string | null
                     title: string
                     updated_at?: string | null
-                    url?: string | null
                     views?: number | null
                 }
                 Update: {
                     amount_text?: string | null
-                    category?: string
+                    category?: string | null
                     created_at?: string | null
-                    deadline?: string
-                    description?: string | null
-                    documents_required?: string | null
+                    deadline?: string | null
+                    enrollment_status?: string[] | null
                     id?: string
                     is_closed?: boolean | null
-                    is_duplicate_allowed?: boolean | null
                     max_income_bracket?: number | null
                     min_gpa?: number | null
                     organization?: string | null
@@ -186,7 +194,6 @@ export type Database = {
                     target_summary?: string | null
                     title?: string
                     updated_at?: string | null
-                    url?: string | null
                     views?: number | null
                 }
                 Relationships: []
@@ -195,20 +202,20 @@ export type Database = {
                 Row: {
                     created_at: string | null
                     id: string
-                    scholarship_id: string
-                    user_id: string
+                    scholarship_id: string | null
+                    user_id: string | null
                 }
                 Insert: {
                     created_at?: string | null
                     id?: string
-                    scholarship_id: string
-                    user_id: string
+                    scholarship_id?: string | null
+                    user_id?: string | null
                 }
                 Update: {
                     created_at?: string | null
                     id?: string
-                    scholarship_id?: string
-                    user_id?: string
+                    scholarship_id?: string | null
+                    user_id?: string | null
                 }
                 Relationships: [
                     {
@@ -230,55 +237,55 @@ export type Database = {
             user_profiles: {
                 Row: {
                     avg_gpa: number | null
-                    college: string | null
                     created_at: string | null
                     department_id: string | null
                     department_name: string | null
-                    enrollment_status: string | null
+                    college: string | null
                     grade: number | null
-                    has_disability: boolean | null
-                    hometown_region: string | null
+                    enrollment_status: string | null
                     id: string
-                    income_bracket: number | null
                     is_multi_child_family: boolean | null
                     is_national_merit: boolean | null
+                    hometown_region: string | null
+                    income_bracket: number | null
                     prev_semester_gpa: number | null
+                    has_disability: boolean | null
                     updated_at: string | null
                     user_id: string
                 }
                 Insert: {
                     avg_gpa?: number | null
-                    college?: string | null
                     created_at?: string | null
                     department_id?: string | null
                     department_name?: string | null
-                    enrollment_status?: string | null
+                    college?: string | null
                     grade?: number | null
-                    has_disability?: boolean | null
-                    hometown_region?: string | null
+                    enrollment_status?: string | null
                     id?: string
-                    income_bracket?: number | null
                     is_multi_child_family?: boolean | null
                     is_national_merit?: boolean | null
+                    hometown_region?: string | null
+                    income_bracket?: number | null
                     prev_semester_gpa?: number | null
+                    has_disability?: boolean | null
                     updated_at?: string | null
                     user_id: string
                 }
                 Update: {
                     avg_gpa?: number | null
-                    college?: string | null
                     created_at?: string | null
                     department_id?: string | null
                     department_name?: string | null
-                    enrollment_status?: string | null
+                    college?: string | null
                     grade?: number | null
-                    has_disability?: boolean | null
-                    hometown_region?: string | null
+                    enrollment_status?: string | null
                     id?: string
-                    income_bracket?: number | null
                     is_multi_child_family?: boolean | null
                     is_national_merit?: boolean | null
+                    hometown_region?: string | null
+                    income_bracket?: number | null
                     prev_semester_gpa?: number | null
+                    has_disability?: boolean | null
                     updated_at?: string | null
                     user_id?: string
                 }
@@ -294,30 +301,42 @@ export type Database = {
             }
             users: {
                 Row: {
+                    admission_year: number | null
                     created_at: string | null
                     email: string | null
-                    fcm_token: string | null
                     id: string
                     last_login_at: string | null
+                    onboarding_completed: boolean | null
                     push_enabled: boolean | null
+                    fcm_token: string | null
+                    is_interview_agreed: boolean | null
+                    is_admin: boolean | null
                     updated_at: string | null
                 }
                 Insert: {
+                    admission_year?: number | null
                     created_at?: string | null
                     email?: string | null
-                    fcm_token?: string | null
-                    id?: string
+                    id: string
                     last_login_at?: string | null
+                    onboarding_completed?: boolean | null
                     push_enabled?: boolean | null
+                    fcm_token?: string | null
+                    is_interview_agreed?: boolean | null
+                    is_admin?: boolean | null
                     updated_at?: string | null
                 }
                 Update: {
+                    admission_year?: number | null
                     created_at?: string | null
                     email?: string | null
-                    fcm_token?: string | null
                     id?: string
                     last_login_at?: string | null
+                    onboarding_completed?: boolean | null
                     push_enabled?: boolean | null
+                    fcm_token?: string | null
+                    is_interview_agreed?: boolean | null
+                    is_admin?: boolean | null
                     updated_at?: string | null
                 }
                 Relationships: []
@@ -339,17 +358,13 @@ export type Database = {
                     p_is_national_merit: boolean
                 }
                 Returns: {
+                    amount_text: string | null
+                    deadline: string | null
                     id: string
+                    is_closed: boolean | null
+                    category: string | null
                     title: string
-                    category: string
-                    amount_text: string
-                    deadline: string
-                    is_closed: boolean
                 }[]
-            }
-            update_updated_at: {
-                Args: Record<PropertyKey, never>
-                Returns: unknown
             }
         }
         Enums: {
@@ -361,4 +376,84 @@ export type Database = {
     }
 }
 
+type PublicSchema = Database["public"]
 
+export type Tables<
+    PublicTableNameOrOptions extends
+    | keyof (PublicSchema["Tables"] & PublicSchema["Views"])
+    | { schema: keyof Database },
+    TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+        Database[PublicTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+    ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
+        Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+            Row: infer R
+        }
+    ? R
+    : never
+    : PublicTableNameOrOptions extends keyof (PublicSchema["Tables"] &
+        PublicSchema["Views"])
+    ? (PublicSchema["Tables"] &
+        PublicSchema["Views"])[PublicTableNameOrOptions] extends {
+            Row: infer R
+        }
+    ? R
+    : never
+    : never
+
+export type TablesInsert<
+    PublicTableNameOrOptions extends
+    | keyof PublicSchema["Tables"]
+    | { schema: keyof Database },
+    TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+    ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+        Insert: infer I
+    }
+    ? I
+    : never
+    : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
+    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+        Insert: infer I
+    }
+    ? I
+    : never
+    : never
+
+export type TablesUpdate<
+    PublicTableNameOrOptions extends
+    | keyof PublicSchema["Tables"]
+    | { schema: keyof Database },
+    TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = PublicTableNameOrOptions extends { schema: keyof Database }
+    ? Database[PublicTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+        Update: infer U
+    }
+    ? U
+    : never
+    : PublicTableNameOrOptions extends keyof PublicSchema["Tables"]
+    ? PublicSchema["Tables"][PublicTableNameOrOptions] extends {
+        Update: infer U
+    }
+    ? U
+    : never
+    : never
+
+export type Enums<
+    PublicEnumNameOrOptions extends
+    | keyof PublicSchema["Enums"]
+    | { schema: keyof Database },
+    EnumName extends PublicEnumNameOrOptions extends { schema: keyof Database }
+    ? keyof Database[PublicEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = PublicEnumNameOrOptions extends { schema: keyof Database }
+    ? Database[PublicEnumNameOrOptions["schema"]]["Enums"][EnumName]
+    : PublicEnumNameOrOptions extends keyof PublicSchema["Enums"]
+    ? PublicSchema["Enums"][PublicEnumNameOrOptions]
+    : never

@@ -23,7 +23,7 @@ export async function GET(request: Request) {
 
         if (exchangeError) {
             console.error('Auth code exchange error:', exchangeError)
-            return NextResponse.redirect(`${origin}/login?error=auth_failed`)
+            return NextResponse.redirect(`${origin}/login?error=auth_failed&details=${encodeURIComponent(exchangeError.message)}`)
         }
 
         // 현재 사용자 정보 가져오기
@@ -31,7 +31,7 @@ export async function GET(request: Request) {
 
         if (userError || !user) {
             console.error('Get user error:', userError)
-            return NextResponse.redirect(`${origin}/login?error=user_not_found`)
+            return NextResponse.redirect(`${origin}/login?error=user_not_found&details=${encodeURIComponent(userError?.message || 'No user data')}`)
         }
 
         // public.users 테이블에서 온보딩 완료 여부 확인
@@ -48,13 +48,14 @@ export async function GET(request: Request) {
                     .from('users')
                     .insert({
                         id: user.id,
-                        email: user.email, // 카카오는 NULL 가능
+                        email: user.email || null, // 카카오는 NULL 가능
                         onboarding_completed: false,
                         last_login_at: new Date().toISOString()
                     })
 
                 if (insertError) {
                     console.error('User insert error:', insertError)
+                    return NextResponse.redirect(`${origin}/login?error=insert_failed&details=${encodeURIComponent(insertError.message)}`)
                 }
 
                 // 신규 사용자는 무조건 온보딩으로
@@ -62,7 +63,7 @@ export async function GET(request: Request) {
             }
 
             console.error('Database error:', dbError)
-            return NextResponse.redirect(`${origin}/login?error=db_error`)
+            return NextResponse.redirect(`${origin}/login?error=db_error&details=${encodeURIComponent(dbError.message)}`)
         }
 
         // 온보딩 완료 여부에 따라 리다이렉트

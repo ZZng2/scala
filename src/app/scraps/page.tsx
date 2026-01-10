@@ -53,9 +53,12 @@ export default function ScrapsPage() {
 
                     // D-Day calc
                     const today = new Date();
-                    const deadline = new Date(s.deadline);
-                    const diffTime = deadline.getTime() - today.getTime();
-                    const d_day = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    let d_day = 0;
+                    if (s.deadline) {
+                        const deadlineDate = new Date(s.deadline);
+                        const diffTime = deadlineDate.getTime() - today.getTime();
+                        d_day = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    }
 
                     return {
                         id: s.id,

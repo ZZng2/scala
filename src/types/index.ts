@@ -7,8 +7,8 @@ export interface Scholarship {
     url: string;
     category: ScholarshipCategory;
     amount_text: string | null;
-    deadline: string; // ISO Date string
-    is_closed: boolean;
+    deadline: string | null; // ISO Date string
+    is_closed: boolean | null;
 
     // 필터링 조건
     target_grades: number[] | null;
@@ -41,9 +41,9 @@ export interface ScholarshipCardData {
     title: string;
     category: ScholarshipCategory;
     amount_text: string;
-    deadline: string;
+    deadline: string | null;
     d_day: number; // 계산된 D-Day 값
-    is_closed: boolean;
+    is_closed: boolean | null;
     is_scrapped?: boolean;
 }
 
@@ -69,8 +69,10 @@ export interface User {
     is_multi_child_family: boolean;
     is_national_merit: boolean;
 
-    fcm_token: string | null;
     push_enabled: boolean;
+    admission_year: number | null;
+    onboarding_completed: boolean;
+    is_admin: boolean;
 
     last_login_at: string;
     created_at: string;
@@ -91,6 +93,7 @@ export interface TempUserData {
     has_disability: boolean;
     is_multi_child_family: boolean;
     is_national_merit: boolean;
+    admission_year?: number;
 }
 
 // Department (학과) 타입

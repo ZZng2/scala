@@ -1,5 +1,6 @@
-import { createClient, createAdminClient } from '@/lib/supabase/server';
+import { createAdminClient, isAdmin } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
 export async function GET(request: Request) {
     console.log('Admin Dashboard API Called');
@@ -10,24 +11,19 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: 'Server Configuration Error: Service Role Key missing' }, { status: 500 });
     }
 
-    const supabase = await createClient();
-    const adminClient = createAdminClient();
-
     try {
-        // 1. Check Session
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-
-        if (sessionError) {
-            console.error('Session Error:', sessionError);
-            return NextResponse.json({ error: 'Session Error' }, { status: 401 });
+        // 1. Check Admin Role
+        if (!await isAdmin()) {
+            console.warn('Unauthorized Admin Access Attempt');
+            return NextResponse.json({
+                error: 'Forbidden: Admin access only',
+                message: '관리자 권한이 없습니다.'
+            }, { status: 403 });
         }
 
-        if (!session) {
-            console.error('No Active Session Found');
-            return NextResponse.json({ error: 'Unauthorized: No session' }, { status: 401 });
-        }
+        const adminClient = createAdminClient();
 
-        console.log('Session Validated:', session.user.id);
+        console.log('Admin Access Validated');
 
         // 2. Fetch Metrics (Using Admin Client to bypass RLS)
         // 2.1 Total Users

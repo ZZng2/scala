@@ -62,6 +62,8 @@ export default function SignupPage() {
         }
     };
 
+    const [isAgreed, setIsAgreed] = useState(false);
+
     return (
         <div className="min-h-screen bg-white flex flex-col items-center justify-center px-6">
             <div className="w-full max-w-md">
@@ -81,11 +83,26 @@ export default function SignupPage() {
                     </p>
                 </div>
 
+                {/* Consent Checkbox */}
+                <div className="mb-6">
+                    <label className="flex items-center gap-3 p-4 border rounded-lg cursor-pointer hover:bg-[#F8F9FA] transition-colors border-[#E0E0E0]">
+                        <input
+                            type="checkbox"
+                            checked={isAgreed}
+                            onChange={(e) => setIsAgreed(e.target.checked)}
+                            className="w-5 h-5 accent-[#FF6B35] cursor-pointer"
+                        />
+                        <span className="text-sm text-[#424242]">
+                            (필수) <Link href="/privacy" className="underline font-semibold">개인정보 처리방침</Link>에 동의합니다
+                        </span>
+                    </label>
+                </div>
+
                 {/* Social Login Buttons */}
                 <div className="space-y-3 mb-6">
                     <button
                         onClick={handleKakaoLogin}
-                        disabled={isLoading}
+                        disabled={isLoading || !isAgreed}
                         className="w-full h-12 bg-[#FEE500] text-[#191919] font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#FDD835] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -101,7 +118,7 @@ export default function SignupPage() {
 
                     <button
                         onClick={handleGoogleLogin}
-                        disabled={isLoading}
+                        disabled={isLoading || !isAgreed}
                         className="w-full h-12 bg-white border border-[#E0E0E0] text-[#212121] font-semibold rounded-lg flex items-center justify-center gap-2 hover:bg-[#F8F9FA] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
@@ -142,8 +159,7 @@ export default function SignupPage() {
 
                 {/* Terms */}
                 <p className="text-xs text-[#BDBDBD] text-center mt-8">
-                    회원가입 시 <span className="underline">이용약관</span>과{' '}
-                    <span className="underline">개인정보처리방침</span>에 동의하게 됩니다.
+                    회원가입 버튼 클릭 시 이용약관에 동의하게 됩니다.
                 </p>
             </div>
         </div>

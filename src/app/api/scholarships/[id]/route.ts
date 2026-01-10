@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient, createAdminClient } from '@/lib/supabase/server';
+import { createClient, createAdminClient, isAdmin } from '@/lib/supabase/server';
 
 /**
  * GET /api/scholarships/[id]
@@ -46,6 +46,10 @@ export async function PATCH(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        if (!await isAdmin()) {
+            return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+        }
+
         const { id } = await params;
         const body = await request.json();
         const supabase = createAdminClient();
@@ -78,6 +82,10 @@ export async function DELETE(
     { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        if (!await isAdmin()) {
+            return NextResponse.json({ error: 'Admin access required' }, { status: 403 });
+        }
+
         const { id } = await params;
         const supabase = createAdminClient();
 

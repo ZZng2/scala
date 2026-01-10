@@ -48,15 +48,23 @@ const generateRandomData = (id: number): BenefitData => {
  * - 아래에서 위로 슬라이드 애니메이션
  */
 export function LiveBenefitTicker() {
-    const [data, setData] = useState<BenefitData>(generateRandomData(0));
+    const [data, setData] = useState<BenefitData | null>(null);
+    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        setMounted(true);
+        setData(generateRandomData(0));
+
         const interval = setInterval(() => {
-            setData((prev) => generateRandomData(prev.id + 1));
+            setData((prev) => prev ? generateRandomData(prev.id + 1) : generateRandomData(0));
         }, 3000);
 
         return () => clearInterval(interval);
     }, []);
+
+    if (!mounted || !data) {
+        return <div className="h-12 flex items-center justify-center overflow-hidden mb-6" />;
+    }
 
     return (
         <div className="h-12 flex items-center justify-center overflow-hidden mb-6">

@@ -106,7 +106,11 @@ export function ScholarshipCard({
                     {/* 마감일 */}
                     <div className="flex items-center text-sm text-[#757575] gap-1">
                         <Calendar className="w-4 h-4" />
-                        <span>~ {new Date(deadline).toLocaleDateString('ko-KR')} 마감</span>
+                        <span>
+                            {deadline
+                                ? `~ ${new Date(deadline).toLocaleDateString('ko-KR')} 마감`
+                                : '상시 모집'}
+                        </span>
                     </div>
                 </CardContent>
             </Card>

@@ -65,10 +65,12 @@ export default function ScholarshipDetailPage() {
 
                 // 4. Calculate D-Day
                 const today = new Date();
-                // deadline이 string 또는 Date일 수 있으므로 처리
-                const deadlineDate = new Date(scholarshipData.deadline);
-                const diffTime = deadlineDate.getTime() - today.getTime();
-                const dDay = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                let dDay = 0;
+                if (scholarshipData.deadline) {
+                    const deadlineDate = new Date(scholarshipData.deadline);
+                    const diffTime = deadlineDate.getTime() - today.getTime();
+                    dDay = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                }
 
                 setScholarship({
                     ...scholarshipData,

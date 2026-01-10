@@ -43,14 +43,18 @@ export function HomeFeed({ userData, isLoggedIn, onReset }: HomeFeedProps) {
                     const today = new Date();
                     const processed = data
                         .map(s => {
-                            const deadline = new Date(s.deadline);
-                            const diffTime = deadline.getTime() - today.getTime();
-                            const dDay = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            let dDay = 0;
+                            if (s.deadline) {
+                                const deadlineDate = new Date(s.deadline);
+                                const diffTime = deadlineDate.getTime() - today.getTime();
+                                dDay = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                            }
 
                             // ScholarshipCardData 타입에 맞게 변환
                             return {
                                 ...s,
                                 d_day: dDay,
+                                is_closed: s.is_closed ?? false,
                                 amount_text: s.amount_text || '', // null 처리
                                 is_scrapped: false, // 기본값, 필요 시 별도 로직으로 scrap 여부 조회
                             } as ScholarshipCardData;
@@ -83,7 +87,7 @@ export function HomeFeed({ userData, isLoggedIn, onReset }: HomeFeedProps) {
                         장학금이 <span className="text-[#FF6B35]">{scholarships.length}개</span> 있어요!
                     </h1>
                     <p className="text-[#757575] text-sm mb-4">
-                        입력하신 조건(소득 {userData.income_bracket === 11 ? '미지정' : `${userData.income_bracket}구간`}, {userData.avg_gpa}점)에 맞춰 찾았습니다.
+                        입력하신 조건(소득 {userData.income_bracket === 11 ? '미지정' : `${userData.income_bracket}구간`}, {userData.avg_gpa === 0 ? '2026학번 새내기' : `${userData.avg_gpa}점`})에 맞춰 찾았습니다.
                     </p>
                 </div>
             </div>
@@ -95,22 +99,33 @@ export function HomeFeed({ userData, isLoggedIn, onReset }: HomeFeedProps) {
                         <ScholarshipCard key={s.id} scholarship={s} />
                     ))
                 ) : (
-                    /* Empty State */
+                    /* Empty State - 로그인 상태에 따라 다른 메시지 표시 */
                     <div className="bg-white rounded-2xl p-8 text-center shadow-sm border border-[#E0E0E0] mt-4">
                         <div className="bg-[#FF6B35]/10 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
                             <Search className="w-8 h-8 text-[#FF6B35]" />
                         </div>
                         <h3 className="text-lg font-bold mb-2 text-[#212121]">조건에 딱 맞는 공고가 아직 없어요.</h3>
-                        <p className="text-[#757575] text-sm mb-6">
-                            하지만 내일 당장 올라올 수도 있어요.<br />
-                            스칼라가 매일 지켜보다가 뜨면 바로 알려드릴까요?
-                        </p>
-                        <Button asChild className="w-full font-bold">
-                            <Link href="/signup">
-                                3초 만에 알림 예약하기
-                            </Link>
-                        </Button>
-                        <p className="text-xs text-[#757575] mt-2">카카오로 간편하게 시작</p>
+
+                        {isLoggedIn ? (
+                            /* 로그인 상태: 간단한 위로 메시지만 표시 */
+                            <p className="text-[#757575] text-sm">
+                                업데이트 되면 바로 알려드릴게요!
+                            </p>
+                        ) : (
+                            /* 비로그인 상태: 기존 위로 문구 + CTA */
+                            <>
+                                <p className="text-[#757575] text-sm mb-6">
+                                    하지만 내일 당장 올라올 수도 있어요.<br />
+                                    스칼라가 매일 지켜보다가 뜨면 바로 알려드릴까요?
+                                </p>
+                                <Button asChild className="w-full font-bold">
+                                    <Link href="/signup">
+                                        3초 만에 알림 예약하기
+                                    </Link>
+                                </Button>
+                                <p className="text-xs text-[#757575] mt-2">카카오로 간편하게 시작</p>
+                            </>
+                        )}
                     </div>
                 )}
 

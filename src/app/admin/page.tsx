@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { MetricsCard, SimpleChart } from '@/components/admin';
 import { Users, MousePointerClick, AlertCircle, Bell, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 /**
  * AdminDashboardPage
@@ -14,6 +15,7 @@ import { toast } from 'sonner';
  * - PUSH 클릭률 차트
  */
 export default function AdminDashboardPage() {
+    const router = useRouter();
     const [loading, setLoading] = useState(true);
     const [data, setData] = useState<any>(null);
 
@@ -22,7 +24,16 @@ export default function AdminDashboardPage() {
             try {
                 const res = await fetch('/api/admin/dashboard/stats');
                 const json = await res.json();
-                if (!res.ok) throw new Error(json.error);
+                if (!res.ok) {
+                    const msg = json.message || json.error || '대시보드 데이터를 불러오지 못했습니다.';
+                    if (res.status === 403) {
+                        toast.error('관리자 권한이 없습니다. 일반 계정은 접근할 수 없습니다.');
+                        setTimeout(() => router.push('/login'), 2000);
+                        return;
+                    }
+                    const details = json.details ? ` (${json.details})` : '';
+                    throw new Error(`${msg}${details}`);
+                }
                 setData(json);
             } catch (error) {
                 console.error('Failed to fetch dashboard stats:', error);

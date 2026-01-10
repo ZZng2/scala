@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase/client';
 import { Header } from '@/components/common';
 import {
     ProgressBar,
@@ -23,7 +24,7 @@ const STORAGE_KEY = 'temp_user_data';
  * PRD 기준:
  * - 5단계 폼 (학과, 학년, GPA, 소득분위, 거주지)
  * - localStorage 임시 저장
- * - 완료 시 /home으로 이동
+ * - 완료 시 /home으로 이동 (로그인 사용자면 DB 저장)
  */
 export default function OnboardingPage() {
     const router = useRouter();
@@ -31,26 +32,106 @@ export default function OnboardingPage() {
     const [userData, setUserData] = useState<Partial<TempUserData>>({});
     const [isLoaded, setIsLoaded] = useState(false);
 
-    // Load from local storage on mount
-    useEffect(() => {
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) {
-            try {
-                const parsed = JSON.parse(saved);
-                setUserData(parsed);
-            } catch (e) {
-                console.error("Failed to parse local storage", e);
-            }
+    /**
+     * DB에 프로필 정보를 저장하고 온보딩 완료 상태로 변경하는 공통 함수
+     */
+    const saveToSupabase = async (data: Partial<TempUserData>) => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        try {
+            // 1. Save profile
+            const { error: profileError } = await supabase
+                .from('user_profiles')
+                .upsert({
+                    user_id: user.id,
+                    department_id: data.department_id,
+                    department_name: data.department_name,
+                    college: data.college,
+                    grade: data.grade,
+                    enrollment_status: data.enrollment_status,
+                    avg_gpa: data.avg_gpa,
+                    prev_semester_gpa: data.prev_semester_gpa,
+                    income_bracket: data.income_bracket,
+                    hometown_region: data.hometown_region,
+                    has_disability: data.has_disability,
+                    is_multi_child_family: data.is_multi_child_family,
+                    is_national_merit: data.is_national_merit
+                });
+
+            if (profileError) throw profileError;
+
+            // 2. Mark onboarding as completed and save additional user fields
+            const { error: userError } = await supabase
+                .from('users')
+                .update({
+                    onboarding_completed: true,
+                    admission_year: data.admission_year
+                })
+                .eq('id', user.id);
+
+            if (userError) throw userError;
+
+            // 3. Clear local storage upon success
+            localStorage.removeItem(STORAGE_KEY);
+        } catch (err) {
+            console.error('Failed to save onboarding data:', err);
+            throw err;
         }
-        setIsLoaded(true);
+    };
+
+    // Load from local storage on mount and check for auto-sync
+    useEffect(() => {
+        const checkAuthAndSync = async () => {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            let parsed: Partial<TempUserData> = {};
+
+            if (saved) {
+                try {
+                    parsed = JSON.parse(saved);
+                    setUserData(parsed);
+                } catch (e) {
+                    console.error("Failed to parse local storage", e);
+                }
+            }
+
+            // Check if user is logged in
+            const { data: { user } } = await supabase.auth.getUser();
+
+            if (user && Object.keys(parsed).length > 0) {
+                const { data: userRecord } = await supabase
+                    .from('users')
+                    .select('onboarding_completed')
+                    .eq('id', user.id)
+                    .single();
+
+                // 온보딩이 아직 완료되지 않았고 임시 데이터가 있다면 자동 동기화
+                if (userRecord && !userRecord.onboarding_completed) {
+                    setStep(6); // Show loading screen
+                    try {
+                        await saveToSupabase(parsed);
+                        // 동기화 성공 시 즉시 홈 화면으로 리다이렉트
+                        router.push('/home');
+                        return; // 더 이상 진행하지 않음
+                    } catch (err) {
+                        console.error('Auto-sync failed:', err);
+                        setStep(1); // Fail -> manual
+                    }
+                }
+            }
+
+            setIsLoaded(true);
+        };
+
+        checkAuthAndSync();
     }, []);
 
-    // Save to local storage on change
+    // Save to local storage on change (only if not finished)
     useEffect(() => {
-        if (isLoaded && Object.keys(userData).length > 0) {
+        if (isLoaded && step < 6 && Object.keys(userData).length > 0) {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
         }
-    }, [userData, isLoaded]);
+    }, [userData, isLoaded, step]);
 
     const updateData = (data: Partial<TempUserData>) => {
         setUserData(prev => ({ ...prev, ...data }));
@@ -67,8 +148,21 @@ export default function OnboardingPage() {
         });
     };
 
-    const handleFinish = () => {
+    /**
+     * 최종 완료 처리
+     */
+    const handleFinish = async () => {
         setStep(6); // Go to loading
+
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            try {
+                await saveToSupabase(userData);
+            } catch (err) {
+                alert('데이터 저장 중 오류가 발생했습니다. 다시 시도해주세요.');
+                setStep(5);
+            }
+        }
     };
 
     const handleLoadingComplete = useCallback(() => {
@@ -100,7 +194,9 @@ export default function OnboardingPage() {
                                 name: userData.department_name!,
                                 college: userData.college!
                             } : undefined}
+                            admissionYear={userData.admission_year}
                             onChange={handleDepartmentChange}
+                            onAdmissionYearChange={(year) => updateData({ admission_year: year })}
                             onNext={nextStep}
                         />
                     )}
@@ -117,6 +213,7 @@ export default function OnboardingPage() {
                         <StepGPA
                             avgGpa={userData.avg_gpa ?? undefined}
                             prevSemesterGpa={userData.prev_semester_gpa ?? undefined}
+                            admissionYear={userData.admission_year}
                             onChange={updateData}
                             onNext={nextStep}
                             onPrev={prevStep}
@@ -141,6 +238,7 @@ export default function OnboardingPage() {
                             onPrev={prevStep}
                         />
                     )}
+
                 </div>
             </div>
         </div>

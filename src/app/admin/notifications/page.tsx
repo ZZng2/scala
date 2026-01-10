@@ -9,13 +9,14 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Send, Search } from 'lucide-react';
+import { Loader2, Send, Search, Check, X, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import { departments as DEPARTMENTS_DATA, REGIONS } from '@/data/departments';
 
 interface Scholarship {
     id: string;
     title: string;
-    category: string;
+    category: string | null;
 }
 
 export default function AdminNotificationsPage() {
@@ -26,9 +27,23 @@ export default function AdminNotificationsPage() {
     // Form State
     const [title, setTitle] = useState('');
     const [body, setBody] = useState('');
-    const [targetDept, setTargetDept] = useState('');
-    const [targetGrade, setTargetGrade] = useState<string[]>([]);
     const [selectedScholarship, setSelectedScholarship] = useState<string>('none');
+
+    // Targeting State
+    const [targetDepts, setTargetDepts] = useState<string[]>([]); // 학과 (다중)
+    const [targetGrade, setTargetGrade] = useState<string[]>([]); // 학년
+    const [minGpa, setMinGpa] = useState<string>(''); // 최소 학점
+    const [maxIncome, setMaxIncome] = useState<string>(''); // 최대 소득분위
+    const [targetRegions, setTargetRegions] = useState<string[]>([]); // 거주 지역
+    const [specialConditions, setSpecialConditions] = useState({
+        is_multi_child: false,
+        has_disability: false,
+        is_national_merit: false,
+    });
+
+    // UI State for Department Selector
+    const [deptSearchQuery, setDeptSearchQuery] = useState('');
+    const [isDeptListOpen, setIsDeptListOpen] = useState(false);
 
     // Fetch Scholarships for linkage
     useEffect(() => {
@@ -43,14 +58,90 @@ export default function AdminNotificationsPage() {
             if (data) setScholarships(data);
         };
         fetchScholarships();
-    }, [supabase]);
+    }, []);
 
+    // Department Handlers (Same as AdminScholarshipsPage)
+    const handleDeptKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const filtered = DEPARTMENTS_DATA.filter(d =>
+                d.name.toLowerCase().includes(deptSearchQuery.toLowerCase()) ||
+                d.college.toLowerCase().includes(deptSearchQuery.toLowerCase())
+            );
+
+            if (filtered.length > 0) {
+                const firstMatch = filtered[0].name;
+                if (!targetDepts.includes(firstMatch)) {
+                    setTargetDepts(prev => [...prev, firstMatch]);
+                }
+                setDeptSearchQuery('');
+            }
+        }
+    };
+
+    const toggleDepartment = (deptName: string) => {
+        setTargetDepts(prev =>
+            prev.includes(deptName)
+                ? prev.filter(d => d !== deptName)
+                : [...prev, deptName]
+        );
+    };
+
+    const renderGroupedDepartments = () => {
+        const grouped = DEPARTMENTS_DATA.reduce((acc, dept) => {
+            if (!acc[dept.college]) acc[dept.college] = [];
+            acc[dept.college].push(dept);
+            return acc;
+        }, {} as Record<string, typeof DEPARTMENTS_DATA>);
+
+        return Object.entries(grouped).map(([college, depts]) => (
+            <div key={college} className="mb-4">
+                <h5 className="text-sm font-bold text-[#212121] mb-2">{college}</h5>
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
+                    {depts.map((dept) => {
+                        const isSelected = targetDepts.includes(dept.name);
+                        return (
+                            <div
+                                key={dept.id}
+                                onClick={() => toggleDepartment(dept.name)}
+                                className={`
+                                    cursor-pointer px-3 py-2 rounded-lg text-sm transition-all border
+                                    ${isSelected
+                                        ? 'bg-[#FF6B35] text-white border-[#FF6B35]'
+                                        : 'bg-white text-[#424242] border-[#E0E0E0] hover:bg-[#FAFAFA]'}
+                                `}
+                            >
+                                <div className="flex items-center justify-between">
+                                    <span>{dept.name}</span>
+                                    {isSelected && <Check size={14} />}
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        ));
+    };
+
+    // Other Handlers
     const handleGradeToggle = (grade: string) => {
         setTargetGrade(prev =>
             prev.includes(grade)
                 ? prev.filter(g => g !== grade)
                 : [...prev, grade]
         );
+    };
+
+    const handleRegionToggle = (region: string) => {
+        setTargetRegions(prev =>
+            prev.includes(region)
+                ? prev.filter(r => r !== region)
+                : [...prev, region]
+        );
+    };
+
+    const handleSpecialToggle = (key: keyof typeof specialConditions) => {
+        setSpecialConditions(prev => ({ ...prev, [key]: !prev[key] }));
     };
 
     const handleSend = async () => {
@@ -67,8 +158,12 @@ export default function AdminNotificationsPage() {
                 body: JSON.stringify({
                     title,
                     body,
-                    target_dept: targetDept || undefined,
+                    target_depts: targetDepts.length > 0 ? targetDepts : undefined,
                     target_grade: targetGrade.length > 0 ? targetGrade.map(Number) : undefined,
+                    min_gpa: minGpa ? parseFloat(minGpa) : undefined,
+                    max_income_bracket: maxIncome ? parseInt(maxIncome) : undefined,
+                    target_regions: targetRegions.length > 0 ? targetRegions : undefined,
+                    special_conditions: specialConditions,
                     scholarship_id: selectedScholarship === 'none' ? undefined : selectedScholarship,
                 }),
             });
@@ -79,12 +174,17 @@ export default function AdminNotificationsPage() {
 
             toast.success(`알림 발송 성공! (대상: ${result.sent_count}명)`);
 
-            // Reset Form
+            // Reset Form (Optional)
             setTitle('');
             setBody('');
-            setTargetDept('');
-            setTargetGrade([]);
             setSelectedScholarship('none');
+            // Keep targeting options or reset them based on preference? Usually keep for repeated sending or slightly modified sending.
+            // setTargetDepts([]);
+            // setTargetGrade([]);
+            // setMinGpa('');
+            // setMaxIncome('');
+            // setTargetRegions([]);
+            // setSpecialConditions({ is_multi_child: false, has_disability: false, is_national_merit: false });
 
         } catch (error: any) {
             console.error('Send Error:', error);
@@ -95,7 +195,7 @@ export default function AdminNotificationsPage() {
     };
 
     return (
-        <div className="max-w-4xl mx-auto space-y-6">
+        <div className="max-w-6xl mx-auto space-y-6 pb-20">
             <div>
                 <h2 className="text-2xl font-bold text-[#212121]">푸시 알림 발송</h2>
                 <p className="text-[#757575]">조건에 맞는 사용자들에게 맞춤 알림을 보냅니다.</p>
@@ -106,7 +206,7 @@ export default function AdminNotificationsPage() {
                 <div className="md:col-span-2 space-y-6">
                     <Card>
                         <CardHeader>
-                            <CardTitle>알림 내용 작성</CardTitle>
+                            <CardTitle>알림 내용</CardTitle>
                         </CardHeader>
                         <CardContent className="space-y-4">
                             <div className="space-y-2">
@@ -141,9 +241,6 @@ export default function AdminNotificationsPage() {
                                         ))}
                                     </SelectContent>
                                 </Select>
-                                <p className="text-xs text-[#757575]">
-                                    * 알림 클릭 시 해당 장학금 상세 페이지로 이동합니다.
-                                </p>
                             </div>
                         </CardContent>
                     </Card>
@@ -153,50 +250,177 @@ export default function AdminNotificationsPage() {
                             <CardTitle>발송 대상 타겟팅</CardTitle>
                             <CardDescription>조건을 입력하지 않으면 전체 사용자에게 발송됩니다.</CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-4">
+                        <CardContent className="space-y-6">
+                            {/* 1. Department */}
                             <div className="space-y-2">
-                                <Label>학과 (부분 일치)</Label>
-                                <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#757575]" />
-                                    <Input
-                                        className="pl-9"
-                                        placeholder="예: 컴퓨터, 경영"
-                                        value={targetDept}
-                                        onChange={e => setTargetDept(e.target.value)}
-                                    />
+                                <Label>학과 (선택)</Label>
+                                <div className="space-y-2">
+                                    <div className="flex gap-2">
+                                        <div className="relative flex-1">
+                                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#757575]" />
+                                            <Input
+                                                className="pl-9"
+                                                placeholder="학과 검색 (엔터 시 자동 추가)"
+                                                value={deptSearchQuery}
+                                                onChange={(e) => setDeptSearchQuery(e.target.value)}
+                                                onKeyDown={handleDeptKeyDown}
+                                            />
+                                        </div>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            onClick={() => setIsDeptListOpen(!isDeptListOpen)}
+                                            className="min-w-[100px]"
+                                        >
+                                            {isDeptListOpen ? '목록 닫기' : '전체 목록'}
+                                        </Button>
+                                    </div>
+
+                                    {/* Selected Departments Tags */}
+                                    {targetDepts.length > 0 && (
+                                        <div className="flex flex-wrap gap-2 p-2 bg-gray-50 rounded-lg border border-dashed">
+                                            {targetDepts.map(dept => (
+                                                <Badge key={dept} variant="secondary" className="bg-white border hover:bg-white text-sm py-1">
+                                                    {dept}
+                                                    <button
+                                                        onClick={() => toggleDepartment(dept)}
+                                                        className="ml-2 hover:text-red-500"
+                                                    >
+                                                        <X size={12} />
+                                                    </button>
+                                                </Badge>
+                                            ))}
+                                            <button
+                                                onClick={() => setTargetDepts([])}
+                                                className="text-xs text-[#757575] hover:text-red-500 underline ml-2"
+                                            >
+                                                전체 삭제
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {/* Full Department List */}
+                                    {isDeptListOpen && (
+                                        <div className="mt-4 p-4 border rounded-xl bg-gray-50 max-h-[400px] overflow-y-auto">
+                                            {renderGroupedDepartments()}
+                                        </div>
+                                    )}
                                 </div>
                             </div>
+
+                            {/* 2. Grade & GPA & Income */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <Label>대상 학년</Label>
+                                    <div className="flex gap-2">
+                                        {['1', '2', '3', '4'].map(grade => (
+                                            <button
+                                                key={grade}
+                                                onClick={() => handleGradeToggle(grade)}
+                                                className={`
+                                                    w-10 h-10 rounded-lg font-medium border transition-colors
+                                                    ${targetGrade.includes(grade)
+                                                        ? 'bg-[#FF6B35] text-white border-[#FF6B35]'
+                                                        : 'bg-white text-[#757575] border-[#E0E0E0] hover:bg-[#F8F9FA]'}
+                                                `}
+                                            >
+                                                {grade}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="space-y-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <Label className="text-xs text-gray-500 mb-1 block">최소 학점 (0 ~ 4.5)</Label>
+                                            <Input
+                                                type="number" step="0.1" min="0" max="4.5"
+                                                placeholder="예: 3.0"
+                                                value={minGpa}
+                                                onChange={e => setMinGpa(e.target.value)}
+                                            />
+                                        </div>
+                                        <div>
+                                            <Label className="text-xs text-gray-500 mb-1 block">최대 소득분위 (1 ~ 10)</Label>
+                                            <Input
+                                                type="number" min="0" max="10"
+                                                placeholder="예: 8"
+                                                value={maxIncome}
+                                                onChange={e => setMaxIncome(e.target.value)}
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* 3. Regions */}
                             <div className="space-y-2">
-                                <Label>학년</Label>
-                                <div className="flex gap-2">
-                                    {['1', '2', '3', '4'].map(grade => (
-                                        <button
-                                            key={grade}
-                                            onClick={() => handleGradeToggle(grade)}
+                                <Label>거주 지역 (중복 선택 가능)</Label>
+                                <div className="flex flex-wrap gap-2">
+                                    {REGIONS.map(region => (
+                                        <Badge
+                                            key={region}
+                                            variant="outline"
                                             className={`
-                                                w-10 h-10 rounded-lg font-medium border transition-colors
-                                                ${targetGrade.includes(grade)
-                                                    ? 'bg-[#FF6B35] text-white border-[#FF6B35]'
-                                                    : 'bg-white text-[#757575] border-[#E0E0E0] hover:bg-[#F8F9FA]'}
+                                                cursor-pointer px-3 py-1.5 transition-colors
+                                                ${targetRegions.includes(region)
+                                                    ? 'bg-[#FF6B35] text-white border-transparent'
+                                                    : 'hover:bg-gray-100'}
                                             `}
+                                            onClick={() => handleRegionToggle(region)}
                                         >
-                                            {grade}
-                                        </button>
+                                            {region}
+                                        </Badge>
                                     ))}
                                 </div>
                             </div>
+
+                            {/* 4. Special Conditions */}
+                            <div className="space-y-3 pt-2 border-t">
+                                <Label>특수 조건 (선택 시 해당자에게만 발송)</Label>
+                                <div className="flex flex-wrap gap-4">
+                                    <label className="flex items-center space-x-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            className="w-4 h-4 rounded border-gray-300 text-[#FF6B35] focus:ring-[#FF6B35]"
+                                            checked={specialConditions.is_multi_child}
+                                            onChange={() => handleSpecialToggle('is_multi_child')}
+                                        />
+                                        <span className="text-sm">다자녀 가구</span>
+                                    </label>
+                                    <label className="flex items-center space-x-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            className="w-4 h-4 rounded border-gray-300 text-[#FF6B35] focus:ring-[#FF6B35]"
+                                            checked={specialConditions.has_disability}
+                                            onChange={() => handleSpecialToggle('has_disability')}
+                                        />
+                                        <span className="text-sm">장애인</span>
+                                    </label>
+                                    <label className="flex items-center space-x-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            className="w-4 h-4 rounded border-gray-300 text-[#FF6B35] focus:ring-[#FF6B35]"
+                                            checked={specialConditions.is_national_merit}
+                                            onChange={() => handleSpecialToggle('is_national_merit')}
+                                        />
+                                        <span className="text-sm">국가유공자</span>
+                                    </label>
+                                </div>
+                            </div>
+
                         </CardContent>
                     </Card>
                 </div>
 
                 {/* Right: Preview & Action */}
                 <div className="space-y-6">
-                    <Card className="bg-[#F8F9FA] border-dashed">
+                    <Card className="bg-[#F8F9FA] border-dashed sticky top-6">
                         <CardHeader>
                             <CardTitle className="text-sm text-[#757575]">미리보기</CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="bg-white p-4 rounded-xl shadow-sm border border-[#E0E0E0]">
+                            <div className="bg-white p-4 rounded-xl shadow-sm border border-[#E0E0E0] mb-6">
                                 <div className="flex items-start gap-3">
                                     <div className="w-10 h-10 rounded-full bg-[#FF6B35]/10 flex items-center justify-center shrink-0">
                                         <span className="text-lg">📢</span>
@@ -207,34 +431,53 @@ export default function AdminNotificationsPage() {
                                             <span className="text-xs text-[#9E9E9E]">방금 전</span>
                                         </div>
                                         <p className="font-semibold text-sm text-[#212121] mb-1 truncate">
-                                            {title || '알림 제목이 여기에 표시됩니다.'}
+                                            {title || '알림 제목'}
                                         </p>
                                         <p className="text-xs text-[#757575] line-clamp-2">
-                                            {body || '알림 내용이 여기에 표시됩니다. 학생들이 실제 받게 될 알림의 예시입니다.'}
+                                            {body || '알림 내용이 여기에 표시됩니다.'}
                                         </p>
                                     </div>
                                 </div>
                             </div>
+
+                            <div className="space-y-3 text-sm text-gray-600">
+                                <div className="font-semibold text-black mb-2 flex items-center gap-2">
+                                    <AlertCircle size={16} /> 발송 타겟 요약
+                                </div>
+                                <ul className="space-y-1 text-xs list-disc pl-4 text-gray-500">
+                                    {targetDepts.length > 0 && <li>학과: {targetDepts.length}개 선택됨</li>}
+                                    {targetGrade.length > 0 && <li>학년: {targetGrade.join(', ')}학년</li>}
+                                    {minGpa && <li>학점: {minGpa} 이상</li>}
+                                    {maxIncome && <li>소득: {maxIncome}구간 이하</li>}
+                                    {targetRegions.length > 0 && <li>지역: {targetRegions.length}개 선택됨</li>}
+                                    {(specialConditions.is_multi_child || specialConditions.has_disability || specialConditions.is_national_merit) && (
+                                        <li>특수조건 적용됨</li>
+                                    )}
+                                    {targetDepts.length === 0 && targetGrade.length === 0 && !minGpa && !maxIncome && targetRegions.length === 0 &&
+                                        <li>조건 없음 (전체 발송)</li>
+                                    }
+                                </ul>
+                            </div>
+
+                            <Button
+                                className="w-full h-12 mt-6 text-base font-semibold bg-[#FF6B35] hover:bg-[#E85A2D]"
+                                onClick={handleSend}
+                                disabled={loading}
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                                        발송 중...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Send className="w-5 h-5 mr-2" />
+                                        알림 발송하기
+                                    </>
+                                )}
+                            </Button>
                         </CardContent>
                     </Card>
-
-                    <Button
-                        className="w-full h-12 text-base font-semibold bg-[#FF6B35] hover:bg-[#E85A2D]"
-                        onClick={handleSend}
-                        disabled={loading}
-                    >
-                        {loading ? (
-                            <>
-                                <Loader2 className="w-5 h-5 animate-spin mr-2" />
-                                발송 중...
-                            </>
-                        ) : (
-                            <>
-                                <Send className="w-5 h-5 mr-2" />
-                                알림 발송하기
-                            </>
-                        )}
-                    </Button>
                 </div>
             </div>
         </div>

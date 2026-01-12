@@ -35,82 +35,13 @@ export function BenefitsSection() {
                     <span className="block text-xl md:text-3xl text-[#757575]">의외의 <span className="text-[#FF6B35]">용돈, 알림</span>으로 확인하세요.</span>
                 </h2>
 
-                {/* iPhone Mockup with iOS-style Notification */}
-                <div className="relative w-full max-w-[320px] aspect-[9/19] bg-gradient-to-br from-gray-600 via-blue-900 to-teal-700 rounded-[32px] border-[8px] border-black shadow-2xl overflow-hidden mb-16 mx-auto">
-                    {/* Dynamic Island */}
-                    <div className="absolute top-2 left-1/2 -translate-x-1/2 w-32 h-8 bg-black rounded-full z-10"></div>
-
-                    {/* Status Bar */}
-                    <div className="absolute top-0 left-0 right-0 h-14 flex items-center justify-between px-8 text-xs font-semibold text-white z-0">
-                        <span className="invisible">9:41</span>
-                        <div className="flex items-center gap-1">
-                            <svg className="w-4 h-3" viewBox="0 0 16 12" fill="currentColor">
-                                <path d="M0 2h3v8H0V2zm5 0h3v8H5V2zm5 0h3v8h-3V2zm5-2v12h1V0h-1z" />
-                            </svg>
-                            <svg className="w-3 h-3" viewBox="0 0 12 12" fill="currentColor">
-                                <path d="M6 0L0 6h12L6 0z" />
-                            </svg>
-                            <svg className="w-6 h-3" viewBox="0 0 24 12" fill="currentColor">
-                                <rect width="18" height="12" rx="2" opacity="0.4" />
-                                <rect width="18" height="12" rx="2" fill="currentColor" />
-                                <rect x="20" y="4" width="2" height="4" rx="1" />
-                            </svg>
-                        </div>
-                    </div>
-
-                    {/* Time Display */}
-                    <div className="absolute top-24 left-0 right-0 text-center">
-                        <div className="text-sm text-white/80 mb-2">4월 1일 (화)</div>
-                        <div className="text-7xl font-extralight text-white tracking-tighter">9:41</div>
-                    </div>
-
-                    {/* Notification Card */}
-                    <div className="absolute bottom-40 left-4 right-4">
-                        <div className="bg-white/20 backdrop-blur-2xl rounded-3xl p-4 shadow-xl border border-white/10">
-                            <div className="flex items-start gap-3">
-                                {/* App Icon - Using actual app icon */}
-                                <div className="w-12 h-12 rounded-xl flex-shrink-0 overflow-hidden shadow-lg">
-                                    <img
-                                        src="/icon-192.png"
-                                        alt="Scala"
-                                        className="w-full h-full object-cover"
-                                    />
-                                </div>
-
-                                {/* Notification Content */}
-                                <div className="flex-1 min-w-0 pt-0.5">
-                                    <div className="flex items-center justify-between mb-1">
-                                        <span className="font-semibold text-sm text-white">Scala</span>
-                                        <span className="text-xs text-white/60">지금</span>
-                                    </div>
-                                    <p className="text-sm text-white font-medium mb-2 leading-snug">
-                                        지원할 수 있는 장학금이 올라왔어요!
-                                    </p>
-                                    <p className="text-xs text-white/80 leading-relaxed">
-                                        세아해암 장학생 모집, 생활비성, 학기 당 300만원, D-7
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Bottom Buttons */}
-                    <div className="absolute bottom-24 left-0 right-0 flex justify-center gap-16">
-                        <div className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center">
-                            <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6z" />
-                            </svg>
-                        </div>
-                        <div className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-xl border border-white/20 flex items-center justify-center">
-                            <svg className="w-7 h-7 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                <circle cx="12" cy="12" r="3.2" />
-                                <path d="M9 2L7.17 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2h-3.17L15 2H9zm3 15c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z" />
-                            </svg>
-                        </div>
-                    </div>
-
-                    {/* Home Indicator */}
-                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-36 h-1.5 bg-white/40 rounded-full"></div>
+                {/* iPhone Mockup */}
+                <div className="relative w-full max-w-[320px] mb-16 mx-auto">
+                    <img
+                        src="/images/iphone_mockup.png"
+                        alt="iPhone 푸시 알림 화면"
+                        className="w-full h-auto"
+                    />
                 </div>
 
                 {/* Benefits Grid */}

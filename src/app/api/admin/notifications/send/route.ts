@@ -77,8 +77,11 @@ export async function POST(request: Request) {
             throw new Error('Failed to calculate target users');
         }
 
-        // 3. Log to push_logs table
-        const { data: insertData, error: insertError } = await supabase
+        // 3. Create Admin Client for DB operations
+        const adminSupabase = createAdminClient();
+
+        // 4. Log to push_logs table (using admin client to bypass RLS)
+        const { data: insertData, error: insertError } = await adminSupabase
             .from('push_logs')
             .insert({
                 title,
@@ -96,8 +99,7 @@ export async function POST(request: Request) {
             throw new Error('Failed to save push log');
         }
 
-        // 4. Send Actual Push Notification via FCM
-        const adminSupabase = createAdminClient();
+        // 5. Send Actual Push Notification via FCM
 
         // 유효한 fcm_token을 가진 유저 목록 가져오기 (필터링 조건 유지)
         const { data: users, error: userError } = await query

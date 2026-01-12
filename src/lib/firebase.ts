@@ -49,25 +49,33 @@ export async function requestFCMToken(): Promise<string | null> {
         const messaging = getMessaging(app);
         const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
 
-        // 4. 서비스 워커 등록 시도 (타임아웃 적용)
+        // 4. Firebase 전용 서비스 워커 명시적 등록 (next-pwa와 충돌 방지)
         let swRegistration: ServiceWorkerRegistration | undefined;
         if ('serviceWorker' in navigator) {
             try {
-                // 5초 타임아웃으로 서비스 워커 대기
-                const swPromise = navigator.serviceWorker.ready;
-                const timeoutPromise = new Promise<null>((_, reject) =>
-                    setTimeout(() => reject(new Error('SW timeout')), 5000)
-                );
-                swRegistration = await Promise.race([swPromise, timeoutPromise]) as ServiceWorkerRegistration;
-                console.log('[FCM] Service Worker ready');
+                console.log('[FCM] Registering firebase-messaging-sw.js...');
+                swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+                    scope: '/firebase-cloud-messaging-push-scope'
+                });
+                console.log('[FCM] Firebase SW registered:', swRegistration.scope);
+
+                // 서비스 워커가 활성화될 때까지 대기
+                if (swRegistration.installing) {
+                    await new Promise<void>((resolve) => {
+                        swRegistration!.installing!.addEventListener('statechange', (e) => {
+                            if ((e.target as ServiceWorker).state === 'activated') {
+                                resolve();
+                            }
+                        });
+                    });
+                }
             } catch (swError) {
-                console.warn('[FCM] Service Worker not ready in time, proceeding without explicit registration:', swError);
-                // 서비스 워커 없이 진행 시도 (일부 환경에서 작동)
+                console.warn('[FCM] Failed to register Firebase SW:', swError);
             }
         }
 
         // 5. 토큰 요청
-        console.log('[FCM] Requesting token...');
+        console.log('[FCM] Requesting token with VAPID key...');
         const tokenOptions: { vapidKey?: string; serviceWorkerRegistration?: ServiceWorkerRegistration } = {
             vapidKey: vapidKey,
         };
@@ -78,7 +86,7 @@ export async function requestFCMToken(): Promise<string | null> {
         const token = await getToken(messaging, tokenOptions);
 
         if (token) {
-            console.log('[FCM] Token acquired successfully');
+            console.log('[FCM] Token acquired successfully:', token.substring(0, 20) + '...');
             return token;
         } else {
             console.error('[FCM] Token request returned empty');

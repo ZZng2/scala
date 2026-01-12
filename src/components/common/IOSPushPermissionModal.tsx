@@ -24,11 +24,14 @@ export function IOSPushPermissionModal({ open, onClose }: Props) {
 
     const handleRequestPermission = async () => {
         setIsLoading(true);
+        console.log('[Modal] "알림 받기" button clicked. Permission state:', Notification.permission);
+
         try {
             // 사용자 요청대로 설정 가이드 강제 없이 바로 권한 요청 시도
             const token = await requestFCMToken();
 
             if (token) {
+                console.log('[Modal] Token received. Updating Supabase...');
                 const { data: { user } } = await supabase.auth.getUser();
                 if (user) {
                     const { error } = await supabase
@@ -37,21 +40,22 @@ export function IOSPushPermissionModal({ open, onClose }: Props) {
                         .eq('id', user.id);
 
                     if (error) {
-                        console.error('Error updating fcm_token:', error);
+                        console.error('[Modal] Error updating fcm_token in Supabase:', error);
                         toast.error('설정 저장 중 오류가 발생했습니다.');
                     } else {
+                        console.log('[Modal] Supabase update successful');
                         toast.success('알림이 설정되었습니다!');
                     }
                 }
                 onClose();
             } else {
                 // 토큰 발급 실패 (권한 거부 또는 브라우저 이슈)
-                console.log('FCM token request returned null');
+                console.warn('[Modal] FCM token request returned null. Final permission status:', Notification.permission);
 
                 // 다시 한 번 권한 확인
                 if (Notification.permission === 'denied') {
                     toast.error('알림 권한이 거부되었습니다.', {
-                        description: '설정에서 알림을 허용해주세요.'
+                        description: '설정에서 알림을 허용해주셔야 합니다.'
                     });
                 } else {
                     toast.info('알림 권한 요청이 취소되었습니다.');
@@ -59,7 +63,7 @@ export function IOSPushPermissionModal({ open, onClose }: Props) {
                 onClose();
             }
         } catch (error) {
-            console.error('Push permission error:', error);
+            console.error('[Modal] Unexpected error in handleRequestPermission:', error);
             toast.error('오류가 발생했습니다. 다시 시도해주세요.');
         } finally {
             setIsLoading(false);

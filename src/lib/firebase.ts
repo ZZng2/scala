@@ -24,25 +24,51 @@ export async function requestFCMToken(): Promise<string | null> {
     try {
         if (typeof window === 'undefined') return null;
 
-        const app = getFirebaseApp();
-        if (!app) return null;
+        console.log('[FCM] Starting token request process...');
 
-        const messaging = getMessaging(app);
-
-        // 알림 권한 확인 및 요청
+        // 1. 알림 권한 확인 및 요청을 가장 먼저 수행 (파이어베이스와 무관하게 팝업 유도)
         const permission = await Notification.requestPermission();
+        console.log('[FCM] Notification permission status:', permission);
+
         if (permission !== 'granted') {
-            console.warn('Notification permission not granted');
+            console.warn('[FCM] Notification permission not granted');
             return null;
         }
 
+        // 2. 파이어베이스 앱 초기화 검사
+        const app = getFirebaseApp();
+        if (!app) {
+            console.error('[FCM] Firebase app initialization failed');
+            return null;
+        }
+        console.log('[FCM] Firebase app initialized');
+
+        // 3. 메시징 객체 획득
+        const messaging = getMessaging(app);
+        console.log('[FCM] Messaging instance obtained');
+
+        // 4. VAPID 키 확인
+        const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
+        if (!vapidKey) {
+            console.error('[FCM] NEXT_PUBLIC_FIREBASE_VAPID_KEY is missing');
+            // 키가 없어도 시도는 하지만 에러 가능성 높음
+        }
+
+        // 5. 토큰 요청
+        console.log('[FCM] Requesting token with VAPID key...');
         const token = await getToken(messaging, {
-            vapidKey: process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY,
+            vapidKey: vapidKey,
         });
 
-        return token;
+        if (token) {
+            console.log('[FCM] Token acquired successfully');
+            return token;
+        } else {
+            console.error('[FCM] Token request returned empty');
+            return null;
+        }
     } catch (error) {
-        console.error('FCM token request failed:', error);
+        console.error('[FCM] Unexpected error during token request:', error);
         return null;
     }
 }

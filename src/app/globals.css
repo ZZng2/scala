@@ -215,7 +215,7 @@ body {
 
 /* ========== Safe Area for Mobile ========== */
 .safe-bottom {
-  padding-bottom: env(safe-area-inset-bottom);
+  bottom: env(safe-area-inset-bottom);
 }
 
 /* ========== Pulse Animation (Social Proof) ========== */

@@ -50,7 +50,7 @@ export function DetailStickyActionBar({ scholarship, isScrapped = false, onScrap
     };
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 z-40 flex justify-center pointer-events-none">
+        <div className="fixed bottom-0 left-0 right-0 z-40 flex justify-center pointer-events-none safe-bottom">
             <div className="w-full max-w-[480px] pointer-events-auto">
                 <div
                     className="h-16 w-full px-4 flex items-center justify-between shadow-[0_-4px_16px_rgba(0,0,0,0.1)]"

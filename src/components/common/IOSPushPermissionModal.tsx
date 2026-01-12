@@ -70,9 +70,11 @@ export function IOSPushPermissionModal({ open, onClose }: Props) {
                     toast.info('알림 권한 요청이 완료되지 않았습니다.');
                 }
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('[Modal] Unexpected error in handleRequestPermission:', error);
-            toast.error('오류가 발생했습니다. 다시 시도해주세요.');
+            toast.error('오류가 발생했습니다.', {
+                description: error?.message || '다시 시도해주세요.'
+            });
         } finally {
             setIsLoading(false);
         }

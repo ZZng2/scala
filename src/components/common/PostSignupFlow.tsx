@@ -32,8 +32,8 @@ function PostSignupFlowInternal() {
             if ((isIOS && isStandalone) || isAndroid) {
                 if ('Notification' in window) {
                     const permission = Notification.permission;
-                    // 권한이 아직 요청되지 않았으면 모달 표시
-                    if (permission === 'default') {
+                    // 권한이 granted가 아니면 모달 표시 (default 또는 denied)
+                    if (permission !== 'granted') {
                         setShowModal(true);
                     }
                 }

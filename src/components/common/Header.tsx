@@ -91,7 +91,7 @@ export function Header({
                     ) : showLogo ? (
                         <Link href="/home" className="flex items-center gap-2">
                             <img
-                                src="/images/symbol_logo.jpg"
+                                src="/images/symbol_logo.png"
                                 alt="Scala Logo"
                                 className="w-8 h-8 object-contain rounded-full"
                             />

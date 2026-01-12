@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Filter, Bell, CalendarCheck } from 'lucide-react';
 import { LiveBenefitTicker } from './LiveBenefitTicker';
@@ -16,6 +16,15 @@ import { LiveBenefitTicker } from './LiveBenefitTicker';
  * - 메인 CTA 버튼
  */
 export function BenefitsSection() {
+    const [signupCount, setSignupCount] = useState(13);
+
+    useEffect(() => {
+        // 회원가입 수 조회
+        fetch('/api/stats/signups')
+            .then(res => res.json())
+            .then(data => setSignupCount(data.count))
+            .catch(() => setSignupCount(13)); // 에러 시 기본값
+    }, []);
     return (
         <div className="bg-white pb-32"> {/* Extra padding for sticky bar */}
             <div className="max-w-[1024px] mx-auto px-6 py-16 md:py-24 flex flex-col items-center text-center">
@@ -26,18 +35,56 @@ export function BenefitsSection() {
                     <span className="block text-xl md:text-3xl text-[#757575]">의외의 <span className="text-[#FF6B35]">용돈, 알림</span>으로 확인하세요.</span>
                 </h2>
 
-                {/* Mockup Visual */}
-                <div className="relative w-full max-w-[320px] aspect-[9/19] bg-[#F8F9FA] rounded-[32px] border-[8px] border-[#E0E0E0] shadow-2xl overflow-hidden mb-16 mx-auto">
-                    {/* Mockup Content (Blurred) */}
-                    <div className="absolute inset-0 bg-white p-4 flex flex-col gap-4 filter blur-[2px]">
-                        <div className="h-8 w-full bg-gray-100 rounded-md" />
-                        <div className="h-32 w-full bg-orange-50 rounded-xl" />
-                        <div className="h-24 w-full bg-gray-50 rounded-xl" />
-                        <div className="h-24 w-full bg-gray-50 rounded-xl" />
-                        <div className="h-24 w-full bg-gray-50 rounded-xl" />
+                {/* iPhone Mockup with Push Notification */}
+                <div className="relative w-full max-w-[320px] aspect-[9/19] bg-gradient-to-b from-gray-100 to-gray-200 rounded-[32px] border-[8px] border-gray-800 shadow-2xl overflow-hidden mb-16 mx-auto">
+                    {/* Status Bar */}
+                    <div className="absolute top-0 left-0 right-0 h-12 flex items-center justify-between px-6 text-xs font-semibold text-gray-700">
+                        <span>15:15</span>
+                        <div className="flex items-center gap-1">
+                            <svg className="w-4 h-3" viewBox="0 0 16 12" fill="currentColor">
+                                <path d="M0 2h3v8H0V2zm5 0h3v8H5V2zm5 0h3v8h-3V2zm5-2v12h1V0h-1z" />
+                            </svg>
+                            <svg className="w-4 h-4" viewBox="0 0 16 16" fill="currentColor">
+                                <path d="M11.5 1A3.5 3.5 0 0 0 8 4.5V7H7a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1h-1V4.5A3.5 3.5 0 0 0 11.5 1z" />
+                            </svg>
+                            <span>100%</span>
+                        </div>
                     </div>
-                    {/* Shine effect */}
-                    <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/20 to-transparent pointer-events-none" />
+
+                    {/* Time Display */}
+                    <div className="absolute top-20 left-0 right-0 text-center">
+                        <div className="text-6xl font-light text-gray-700 tracking-tight">15:17</div>
+                        <div className="text-sm text-gray-600 mt-1">1월 12일 (월)</div>
+                    </div>
+
+                    {/* Push Notification */}
+                    <div className="absolute bottom-32 left-4 right-4">
+                        <div className="bg-white/90 backdrop-blur-xl rounded-2xl p-4 shadow-lg">
+                            <div className="flex items-start gap-3">
+                                {/* App Icon */}
+                                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#FF6B35] to-[#FF8C5A] flex items-center justify-center flex-shrink-0 shadow-md">
+                                    <span className="text-white font-bold text-lg">S</span>
+                                </div>
+
+                                {/* Notification Content */}
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className="font-semibold text-sm text-gray-900">Scala</span>
+                                        <span className="text-xs text-gray-500">지금</span>
+                                    </div>
+                                    <p className="text-sm text-gray-900 font-medium mb-1">
+                                        새로운 장학금이 등록되었어요!
+                                    </p>
+                                    <p className="text-xs text-gray-600 line-clamp-2">
+                                        2025년 동국대학교 성적우수장학금 - 마감 D-7
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Bottom Indicator */}
+                    <div className="absolute bottom-2 left-1/2 -translate-x-1/2 w-32 h-1 bg-gray-800 rounded-full"></div>
                 </div>
 
                 {/* Benefits Grid */}
@@ -90,7 +137,7 @@ export function BenefitsSection() {
                             <span className="relative inline-flex rounded-full h-3 w-3 bg-green-500"></span>
                         </div>
                         <p className="text-gray-700 text-sm font-bold">
-                            현재 <span className="text-[#FF6B35]">13명</span>이 PUSH 알림 신청
+                            현재 <span className="text-[#FF6B35]">{signupCount}명</span>이 PUSH 알림 신청
                         </p>
                     </div>
 

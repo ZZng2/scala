@@ -25,16 +25,7 @@ export function IOSPushPermissionModal({ open, onClose }: Props) {
     const handleRequestPermission = async () => {
         setIsLoading(true);
         try {
-            // 0. 권한 상태가 'denied'인 경우 미리 체크
-            if (Notification.permission === 'denied') {
-                toast.error('알림이 차단되어 있습니다.', {
-                    description: '설정 > Scala > 알림에서 허용해주세요.',
-                    duration: 4000
-                });
-                onClose();
-                return;
-            }
-
+            // 사용자 요청대로 설정 가이드 강제 없이 바로 권한 요청 시도
             const token = await requestFCMToken();
 
             if (token) {

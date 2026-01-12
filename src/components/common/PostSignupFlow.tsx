@@ -63,7 +63,7 @@ function PostSignupFlowInternal() {
 
     // iOS Safari: 홈 화면 추가 가이드 (PRD Feature 4 - Case 2, Step 1)
     if (isIOS && !isStandalone) {
-        return <IOSInstallGuideModal open={showModal} onClose={handleClose} />;
+        return <IOSPushGuideCarousel open={showModal} onClose={handleClose} isStandalone={false} />;
     }
 
     // iOS Standalone: 알림 권한 요청 (PRD Feature 4 - Case 2, Step 2)

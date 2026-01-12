@@ -25,6 +25,16 @@ export function IOSPushPermissionModal({ open, onClose }: Props) {
     const handleRequestPermission = async () => {
         setIsLoading(true);
         try {
+            // 0. 권한 상태가 'denied'인 경우 미리 체크
+            if (Notification.permission === 'denied') {
+                toast.error('알림이 차단되어 있습니다.', {
+                    description: '설정 > Scala > 알림에서 허용해주세요.',
+                    duration: 4000
+                });
+                onClose();
+                return;
+            }
+
             const token = await requestFCMToken();
 
             if (token) {
@@ -37,21 +47,29 @@ export function IOSPushPermissionModal({ open, onClose }: Props) {
 
                     if (error) {
                         console.error('Error updating fcm_token:', error);
-                        toast.error('알림 설정 저장 중 오류가 발생했습니다.');
+                        toast.error('설정 저장 중 오류가 발생했습니다.');
                     } else {
-                        toast.success('알림 설정이 완료되었습니다!');
+                        toast.success('알림이 설정되었습니다!');
                     }
                 }
                 onClose();
             } else {
-                // iOS PWA에서 권한 요청 실패 시 (거부 또는 무시)
-                console.log('Push permission denied or dismissed');
-                toast.info('알림 권한이 설정되지 않았습니다.');
+                // 토큰 발급 실패 (권한 거부 또는 브라우저 이슈)
+                console.log('FCM token request returned null');
+
+                // 다시 한 번 권한 확인
+                if (Notification.permission === 'denied') {
+                    toast.error('알림 권한이 거부되었습니다.', {
+                        description: '설정에서 알림을 허용해주세요.'
+                    });
+                } else {
+                    toast.info('알림 권한 요청이 취소되었습니다.');
+                }
                 onClose();
             }
         } catch (error) {
             console.error('Push permission error:', error);
-            toast.error('알림 요청 중 오류가 발생했습니다.');
+            toast.error('오류가 발생했습니다. 다시 시도해주세요.');
         } finally {
             setIsLoading(false);
         }

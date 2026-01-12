@@ -15,13 +15,39 @@ function PostSignupFlowInternal() {
     useEffect(() => {
         const postSignup = searchParams.get('postSignup');
 
+        // 1. 회원가입 직후
         if (postSignup) {
             setShowModal(true);
+            return;
         }
-    }, [searchParams]);
+
+        // 2. iOS Standalone 또는 Android에서 푸시 권한 미요청 상태 체크
+        const checkPushPermission = async () => {
+            // localStorage에서 푸시 권한 요청 여부 확인
+            const pushRequested = localStorage.getItem('push_permission_requested');
+
+            if (pushRequested === 'true') return;
+
+            // iOS Standalone 또는 Android에서 권한 체크
+            if ((isIOS && isStandalone) || isAndroid) {
+                if ('Notification' in window) {
+                    const permission = Notification.permission;
+                    // 권한이 아직 요청되지 않았으면 모달 표시
+                    if (permission === 'default') {
+                        setShowModal(true);
+                    }
+                }
+            }
+        };
+
+        checkPushPermission();
+    }, [searchParams, isIOS, isAndroid, isStandalone]);
 
     const handleClose = () => {
         setShowModal(false);
+        // 푸시 권한 요청 완료 표시
+        localStorage.setItem('push_permission_requested', 'true');
+
         // URL에서 쿼리 파라미터 제거하여 다시 발생하지 않도록 함
         const url = new URL(window.location.href);
         url.searchParams.delete('postSignup');

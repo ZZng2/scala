@@ -36,7 +36,8 @@ export function HomeFeed({ userData, isLoggedIn, onReset }: HomeFeedProps) {
                 const { data, error } = await supabase.rpc('match_scholarships', {
                     p_grade: userData.grade,
                     p_gpa: userData.avg_gpa ?? 0, // null인 경우 0으로 처리
-                    p_income_bracket: userData.income_bracket,
+                    // 소득분위 11(미해당)은 0으로 전달하여 제한 없음으로 처리
+                    p_income_bracket: userData.income_bracket === 11 ? 0 : userData.income_bracket,
                     p_department_id: userData.department_id,
                     p_region: userData.hometown_region ?? '', // null인 경우 빈 문자열로 처리
                     p_has_disability: userData.has_disability || false,

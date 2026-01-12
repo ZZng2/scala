@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/server';
  */
 export async function POST(request: Request) {
     try {
+        const body = await request.json();
         const { userId, push_enabled, ...profileData } = body;
 
         if (!userId) {

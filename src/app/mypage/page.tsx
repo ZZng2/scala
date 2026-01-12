@@ -312,12 +312,10 @@ export default function MyPage() {
                         </div>
                     </section>
 
-                </Select>
-        </div>
-                    </section >
 
-        {/* Push Notification Toggle */ }
-        < div className = "flex items-center justify-between p-4 bg-[#F8F9FA] rounded-lg" >
+
+                    {/* Push Notification Toggle */}
+                    < div className="flex items-center justify-between p-4 bg-[#F8F9FA] rounded-lg" >
                         <div>
                             <p className="font-semibold text-[#212121]">PUSH 알림</p>
                             <p className="text-sm text-[#757575]">새 장학금이 등록되면 알려드려요</p>
@@ -331,8 +329,8 @@ export default function MyPage() {
                         </button>
                     </div >
 
-        {/* 추가 자격 */ }
-        < section className = "space-y-4" >
+                    {/* 추가 자격 */}
+                    < section className="space-y-4" >
                         <h3 className="text-lg font-bold text-[#212121]">추가 자격</h3>
 
                         <div className="space-y-3">
@@ -374,9 +372,9 @@ export default function MyPage() {
                         </div>
                     </section >
 
-        <Button type="submit" className="w-full h-12 text-lg font-bold mt-8" disabled={isSaving}>
-            {isSaving ? '저장 중...' : '저장하기'}
-        </Button>
+                    <Button type="submit" className="w-full h-12 text-lg font-bold mt-8" disabled={isSaving}>
+                        {isSaving ? '저장 중...' : '저장하기'}
+                    </Button>
                 </form >
             </main >
         </div >

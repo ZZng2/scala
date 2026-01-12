@@ -49,18 +49,26 @@ export function IOSPushPermissionModal({ open, onClose }: Props) {
                 }
                 onClose();
             } else {
-                // 토큰 발급 실패 (권한 거부 또는 브라우저 이슈)
-                console.warn('[Modal] FCM token request returned null. Final permission status:', Notification.permission);
+                // 토큰 발급 실패 (권한 거부 또는 기술적 이슈)
+                const currentPermission = Notification.permission;
+                console.warn('[Modal] FCM token request failed. Current permission:', currentPermission);
 
-                // 다시 한 번 권한 확인
-                if (Notification.permission === 'denied') {
+                if (currentPermission === 'denied') {
                     toast.error('알림 권한이 거부되었습니다.', {
-                        description: '설정에서 알림을 허용해주셔야 합니다.'
+                        description: '설정 > 알림에서 권한을 수동으로 허용해주셔야 합니다.'
                     });
+                    onClose();
+                } else if (currentPermission === 'granted') {
+                    // 권한은 허용되었는데 토큰이 실패한 경우 (주로 기술적 문제)
+                    toast.error('알림 설정 중 기술적인 오류가 발생했습니다.', {
+                        description: '잠시 후 다시 시도해주시거나, 앱을 다시 실행해주세요.'
+                    });
+                    // 모달을 닫지 않고 재시도 기회를 줄 수도 있지만, 일단은 닫음
+                    onClose();
                 } else {
-                    toast.info('알림 권한 요청이 취소되었습니다.');
+                    // 여전히 default거나 차단된 경우 (사용자가 창을 닫음 등)
+                    toast.info('알림 권한 요청이 완료되지 않았습니다.');
                 }
-                onClose();
             }
         } catch (error) {
             console.error('[Modal] Unexpected error in handleRequestPermission:', error);

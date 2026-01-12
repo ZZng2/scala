@@ -28,7 +28,7 @@ export async function requestFCMToken(): Promise<string | null> {
 
         console.log('[FCM] Starting token request process...');
 
-        // 1. 알림 권한 확인 및 요청을 가장 먼저 수행 (파이어베이스와 무관하게 팝업 유도)
+        // 1. 알림 권한 확인 및 요청
         const permission = await Notification.requestPermission();
         console.log('[FCM] Notification permission status:', permission);
 
@@ -37,36 +37,41 @@ export async function requestFCMToken(): Promise<string | null> {
             return null;
         }
 
-        // 2. 파이어베이스 앱 초기화 검사
+        // 2. 서비스 워커 등록 확인 (iOS PWA에서 중요)
+        if (!('serviceWorker' in navigator)) {
+            console.error('[FCM] Service Worker not supported in this browser');
+            return null;
+        }
+
+        const registration = await navigator.serviceWorker.ready;
+        if (!registration) {
+            console.error('[FCM] Service Worker registration not found or not ready');
+            return null;
+        }
+        console.log('[FCM] Service Worker ready');
+
+        // 3. 파이어베이스 앱 초기화
         const app = getFirebaseApp();
         if (!app) {
             console.error('[FCM] Firebase app initialization failed');
             return null;
         }
-        console.log('[FCM] Firebase app initialized');
 
-        // 3. 메시징 객체 획득
+        // 4. 메시징 객체 획득 및 토큰 요청
         const messaging = getMessaging(app);
-        console.log('[FCM] Messaging instance obtained');
-
-        // 4. VAPID 키 확인
         const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
-        if (!vapidKey) {
-            console.error('[FCM] NEXT_PUBLIC_FIREBASE_VAPID_KEY is missing');
-            // 키가 없어도 시도는 하지만 에러 가능성 높음
-        }
 
-        // 5. 토큰 요청
-        console.log('[FCM] Requesting token with VAPID key...');
+        console.log('[FCM] Requesting token...');
         const token = await getToken(messaging, {
             vapidKey: vapidKey,
+            serviceWorkerRegistration: registration, // 명시적으로 전달
         });
 
         if (token) {
             console.log('[FCM] Token acquired successfully');
             return token;
         } else {
-            console.error('[FCM] Token request returned empty');
+            console.error('[FCM] Token request returned empty (permission was granted but token is null)');
             return null;
         }
     } catch (error) {

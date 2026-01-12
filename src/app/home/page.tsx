@@ -10,12 +10,14 @@ import type { TempUserData } from '@/types';
 const STORAGE_KEY = 'temp_user_data';
 
 import { PostSignupFlow } from '@/components/common/PostSignupFlow';
+import { IOSPushSettingsGuideModal } from '@/components/common/IOSPushSettingsGuideModal';
 
 export default function HomePage() {
     const router = useRouter();
     const [userData, setUserData] = useState<TempUserData | null>(null);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [showPushSettingsGuide, setShowPushSettingsGuide] = useState(false);
 
     useEffect(() => {
         const checkAuthAndLoad = async () => {
@@ -90,6 +92,13 @@ export default function HomePage() {
         };
 
         checkAuthAndLoad();
+
+        // Check for iOS push settings guide flag
+        const showGuide = localStorage.getItem('show_ios_push_settings_guide');
+        if (showGuide === 'true') {
+            setShowPushSettingsGuide(true);
+            localStorage.removeItem('show_ios_push_settings_guide');
+        }
     }, [router]);
 
     const handleReset = async () => {
@@ -117,6 +126,10 @@ export default function HomePage() {
                 userData={userData}
                 isLoggedIn={isLoggedIn}
                 onReset={handleReset}
+            />
+            <IOSPushSettingsGuideModal
+                open={showPushSettingsGuide}
+                onClose={() => setShowPushSettingsGuide(false)}
             />
         </div>
     );

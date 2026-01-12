@@ -44,8 +44,13 @@ export function IOSPushPermissionModal({ open, onClose }: Props) {
                 }
                 onClose();
             } else {
-                toast.info('알림 권한이 필요합니다. 설정에서 직접 허용하실 수 있습니다.');
+                // iOS PWA에서 권한 요청 실패 시
+                // 설정 가이드 모달 표시를 위해 localStorage 플래그 설정
+                localStorage.setItem('show_ios_push_settings_guide', 'true');
+                toast.info('알림 권한이 필요합니다. 설정 가이드를 확인해주세요.');
                 onClose();
+                // 페이지 새로고침하여 가이드 모달 트리거
+                window.location.reload();
             }
         } catch (error) {
             console.error('Push permission error:', error);

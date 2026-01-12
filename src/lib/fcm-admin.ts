@@ -3,15 +3,19 @@ import admin from 'firebase-admin';
 // Firebase Admin 초기화 (서버사이드)
 if (!admin.apps.length) {
     try {
-        const serviceAccount = JSON.parse(
-            process.env.FIREBASE_SERVICE_ACCOUNT_KEY || '{}'
-        );
+        const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
 
-        admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount),
-        });
+        if (!serviceAccountKey) {
+            console.warn('[FCM-Admin] FIREBASE_SERVICE_ACCOUNT_KEY is missing');
+        } else {
+            const serviceAccount = JSON.parse(serviceAccountKey);
+            admin.initializeApp({
+                credential: admin.credential.cert(serviceAccount),
+            });
+            console.log('[FCM-Admin] Firebase Admin initialized successfully');
+        }
     } catch (error) {
-        console.error('Firebase Admin initialization error:', error);
+        console.error('[FCM-Admin] Firebase Admin initialization error:', error);
     }
 }
 

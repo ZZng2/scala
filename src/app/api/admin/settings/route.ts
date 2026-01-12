@@ -18,12 +18,15 @@ export async function GET() {
 
         // 환경변수 상태 확인
         const hasSupabaseUrl = !!process.env.NEXT_PUBLIC_SUPABASE_URL;
-        const hasSupabaseKey = !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-        const hasFcmKey = !!process.env.FCM_SERVER_KEY; // Google Cloud Credentials (JSON)
+        const hasSupabaseAnonKey = !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+        const hasSupabaseServiceKey = !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+        // 실제 사용되는 키는 FIREBASE_SERVICE_ACCOUNT_KEY (JSON 문자열)
+        const hasFcmKey = !!process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
 
         return NextResponse.json({
             supabase: {
-                connected: hasSupabaseUrl && hasSupabaseKey,
+                connected: hasSupabaseUrl && hasSupabaseAnonKey && hasSupabaseServiceKey,
                 url: process.env.NEXT_PUBLIC_SUPABASE_URL || ''
             },
             fcm: {

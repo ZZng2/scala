@@ -1,5 +1,6 @@
-import { createClient } from '@/lib/supabase/server';
+import { createAdminClient, isAdmin } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
+import { sendPushNotification } from '@/lib/fcm-admin';
 
 export async function POST(request: Request) {
     const supabase = await createClient();
@@ -95,14 +96,55 @@ export async function POST(request: Request) {
             throw new Error('Failed to save push log');
         }
 
-        // 4. (Simulation) Send Push Notification
-        // In a real scenario, fetch tokens for the filtered users and send via FCM
-        // const { data: users } = await query.select('user_id'); 
-        // ... join with users table to get fcm_token ...
+        // 4. Send Actual Push Notification via FCM
+        const adminSupabase = createAdminClient();
+
+        // 유효한 fcm_token을 가진 유저 목록 가져오기 (필터링 조건 유지)
+        const { data: users, error: userError } = await query
+            .select('user_id, users!inner(fcm_token, push_enabled)')
+            .not('users.fcm_token', 'is', null)
+            .eq('users.push_enabled', true);
+
+        if (userError) {
+            console.error('Failed to fetch user tokens:', userError);
+            throw new Error('Failed to fetch user tokens for push');
+        }
+
+        const tokens = (users as any[])
+            .map(u => u.users?.fcm_token)
+            .filter(Boolean);
+
+        console.log(`[AdminPush] Sending to ${tokens.length} users (Filtered from ${count} targeting)`);
+
+        let successCount = 0;
+        let failureCount = 0;
+
+        if (tokens.length > 0) {
+            const result = await sendPushNotification(
+                tokens,
+                title,
+                body,
+                scholarship_id
+            );
+            successCount = result.success;
+            failureCount = result.failure;
+        }
+
+        // 5. Update Log with results
+        await adminSupabase
+            .from('push_logs')
+            .update({
+                sent_count: successCount,
+                failure_count: failureCount,
+                status: 'completed'
+            })
+            .eq('id', insertData.id);
 
         return NextResponse.json({
             success: true,
-            sent_count: count,
+            target_count: count,
+            sent_count: successCount,
+            failure_count: failureCount,
             log_id: insertData.id
         });
 

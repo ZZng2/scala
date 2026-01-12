@@ -36,10 +36,10 @@ export async function POST(request: Request) {
         if (error) {
             console.error('Error matching scholarships:', error);
 
-            // Fallback: RPC 없으면 기본 쿼리
-            const { data: fallbackData, error: fallbackError } = await supabase
+            // Fallback: RPC 없으면 클라이언트 사이드 필터링
+            const { data: allScholarships, error: fallbackError } = await supabase
                 .from('scholarships')
-                .select('id, title, category, amount_text, deadline, is_closed')
+                .select('*')
                 .eq('is_closed', false)
                 .gte('deadline', new Date().toISOString().split('T')[0])
                 .order('deadline', { ascending: true });
@@ -48,7 +48,37 @@ export async function POST(request: Request) {
                 return NextResponse.json({ error: fallbackError.message }, { status: 500 });
             }
 
-            return NextResponse.json({ data: fallbackData, matched: false });
+            // 클라이언트 사이드 필터링
+            const filteredData = (allScholarships || []).filter((s: any) => {
+                // 1. 소득분위 조건
+                if (s.max_income_bracket !== null && income_bracket !== null && income_bracket !== 11) {
+                    if (income_bracket > s.max_income_bracket) return false;
+                }
+                // 2. 성적 조건
+                if (s.min_gpa !== null && avg_gpa !== null) {
+                    if (avg_gpa < s.min_gpa) return false;
+                }
+                // 3. 학년 조건
+                if (s.target_grades && s.target_grades.length > 0 && grade !== null) {
+                    if (!s.target_grades.includes(grade)) return false;
+                }
+                // 4. 학과 조건
+                if (s.target_departments && s.target_departments.length > 0 && department_id) {
+                    if (!s.target_departments.includes(department_id)) return false;
+                }
+                // 5. 지역 조건
+                if (s.target_regions && s.target_regions.length > 0 && hometown_region) {
+                    if (!s.target_regions.includes(hometown_region)) return false;
+                }
+                // 6. 특수 조건
+                if (s.requires_disability && !has_disability) return false;
+                if (s.requires_multi_child && !is_multi_child_family) return false;
+                if (s.requires_national_merit && !is_national_merit) return false;
+
+                return true;
+            });
+
+            return NextResponse.json({ data: filteredData, matched: false });
         }
 
         return NextResponse.json({ data, matched: true });

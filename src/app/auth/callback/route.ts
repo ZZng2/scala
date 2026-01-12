@@ -74,7 +74,19 @@ export async function GET(request: Request) {
                 .update({ last_login_at: new Date().toISOString() })
                 .eq('id', user.id)
 
-            return NextResponse.redirect(`${origin}/home`)
+            // OS 감지 (User-Agent 기반)
+            const userAgent = request.headers.get('user-agent') || ''
+            const isIOS = /iPhone|iPad|iPod/i.test(userAgent)
+            const isAndroid = /Android/i.test(userAgent)
+
+            let redirectUrl = `${origin}/home`
+            if (isAndroid) {
+                redirectUrl += '?postSignup=android'
+            } else if (isIOS) {
+                redirectUrl += '?postSignup=ios'
+            }
+
+            return NextResponse.redirect(redirectUrl)
         } else {
             return NextResponse.redirect(`${origin}/onboarding`)
         }

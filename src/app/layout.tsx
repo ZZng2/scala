@@ -13,6 +13,12 @@ export const metadata: Metadata = {
   description: "동국대학교 재학생/휴학생을 위한 맞춤형 장학금 PUSH 알림 서비스. 지원 가능한 장학금만 필터링해서 알려드려요.",
   keywords: ["동국대학교", "장학금", "대학생", "알림", "PWA"],
   authors: [{ name: "Scala Team" }],
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    title: "Scala",
+    statusBarStyle: "default",
+  },
   openGraph: {
     title: "Scala - 동국대 맞춤 장학금 알림",
     description: "놓치는 장학금 없이, PUSH 알림으로 받아보세요.",
@@ -20,8 +26,8 @@ export const metadata: Metadata = {
     locale: "ko_KR",
   },
   icons: {
-    icon: "/images/symbol_logo.jpg",
-    apple: "/images/symbol_logo.jpg",
+    icon: "/icon-192.png",
+    apple: "/icon-192.png",
   },
 };
 
@@ -31,6 +37,7 @@ export const viewport: Viewport = {
   maximumScale: 1,
   userScalable: false,
   viewportFit: "cover",
+  themeColor: "#FF6B35",
 };
 
 export default function RootLayout({
@@ -46,6 +53,9 @@ export default function RootLayout({
           rel="stylesheet"
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
         />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="apple-mobile-web-app-title" content="Scala" />
       </head>
       <body
         suppressHydrationWarning

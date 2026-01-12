@@ -50,9 +50,20 @@ export function StickyActionBar({
         );
     };
 
-    const handleApply = () => {
-        // TODO: scholarship_clicks 테이블에 로그 저장
-        console.log('Click logged for scholarship:', scholarshipId);
+    const handleApply = async () => {
+        // Analytics: 장학금 클릭 로그 저장
+        try {
+            await fetch('/api/analytics/event', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    event_type: 'outbound_link_clicked',
+                    scholarship_id: scholarshipId,
+                }),
+            });
+        } catch (error) {
+            console.error('Analytics logging failed:', error);
+        }
 
         // 새 창으로 외부 링크 열기
         window.open(externalUrl, '_blank', 'noopener,noreferrer');

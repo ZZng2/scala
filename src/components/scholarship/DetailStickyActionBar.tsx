@@ -26,19 +26,23 @@ export function DetailStickyActionBar({ scholarship, isScrapped = false, onScrap
     const handleScrap = () => {
         const newState = !isScrapped;
         onScrapToggle?.(newState);
-
-        if (newState) {
-            toast.success('장학금을 스크랩했습니다.', {
-                description: '마이페이지에서 확인할 수 있습니다.'
-            });
-        } else {
-            toast.success('장학금을 스크랩에서 제외했습니다.');
-        }
+        // Toast messages moved to parent component (page.tsx) to show after login check
     };
 
-    const handleApply = () => {
-        // TODO: Log click to analytics
-        console.log('Clicked apply for', scholarship.id);
+    const handleApply = async () => {
+        // Analytics: 장학금 클릭 로그 저장
+        try {
+            await fetch('/api/analytics/event', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    event_type: 'outbound_link_clicked',
+                    scholarship_id: scholarship.id,
+                }),
+            });
+        } catch (error) {
+            console.error('Analytics logging failed:', error);
+        }
 
         // Open link
         const url = scholarship.url || 'https://www.dongguk.edu/article/SCHOLARSHIP';

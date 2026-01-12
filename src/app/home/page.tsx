@@ -9,6 +9,8 @@ import type { TempUserData } from '@/types';
 
 const STORAGE_KEY = 'temp_user_data';
 
+import { PostSignupFlow } from '@/components/common/PostSignupFlow';
+
 export default function HomePage() {
     const router = useRouter();
     const [userData, setUserData] = useState<TempUserData | null>(null);
@@ -109,6 +111,7 @@ export default function HomePage() {
 
     return (
         <div className="min-h-screen bg-[#F8F9FA]">
+            <PostSignupFlow />
             <Header isLoggedIn={isLoggedIn} showLogo={false} />
             <HomeFeed
                 userData={userData}

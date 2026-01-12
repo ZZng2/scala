@@ -69,6 +69,7 @@ CREATE TABLE IF NOT EXISTS public.scholarships (
   -- 메타데이터
   views INTEGER DEFAULT 0,
   scraps INTEGER DEFAULT 0,
+  push_sent BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -91,6 +92,20 @@ CREATE TABLE IF NOT EXISTS public.push_logs (
   target_user_count INTEGER NOT NULL DEFAULT 0,
   sent_at TIMESTAMPTZ DEFAULT NOW(),
   clicked_count INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- ========== 6. Notifications 테이블 (사용자별 알림 수신 내역) ==========
+CREATE TABLE IF NOT EXISTS public.notifications (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES public.users(id) ON DELETE CASCADE,
+  scholarship_id UUID NOT NULL REFERENCES public.scholarships(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  body TEXT NOT NULL,
+  sent BOOLEAN DEFAULT FALSE,
+  sent_at TIMESTAMPTZ,
+  clicked BOOLEAN DEFAULT FALSE,
+  clicked_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -161,6 +176,12 @@ CREATE POLICY "Users can delete own scraps" ON public.scraps
 
 -- Push Logs: 관리자만 접근 (서버에서만 사용)
 ALTER TABLE public.push_logs ENABLE ROW LEVEL SECURITY;
+
+-- Notifications: 본인 것만 조회 가능
+ALTER TABLE public.notifications ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view own notifications" ON public.notifications
+  FOR SELECT USING (auth.uid() = user_id);
 
 -- Click Events: 본인만 삽입 가능
 ALTER TABLE public.click_events ENABLE ROW LEVEL SECURITY;

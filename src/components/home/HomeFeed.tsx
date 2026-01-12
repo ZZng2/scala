@@ -32,16 +32,56 @@ export function HomeFeed({ userData, isLoggedIn, onReset }: HomeFeedProps) {
         const fetchScholarships = async () => {
             setLoading(true);
             try {
-                // Fetch actual data from Supabase
-                const { data, error } = await supabase
-                    .from('scholarships')
-                    .select('*'); // 필요한 경우 필터링 추가 가능
+                // 1. match_scholarships RPC 호출 시도 (개인화 필터링)
+                const { data, error } = await supabase.rpc('match_scholarships', {
+                    p_grade: userData.grade,
+                    p_gpa: userData.avg_gpa ?? 0, // null인 경우 0으로 처리
+                    p_income_bracket: userData.income_bracket,
+                    p_department_id: userData.department_id,
+                    p_region: userData.hometown_region ?? '', // null인 경우 빈 문자열로 처리
+                    p_has_disability: userData.has_disability || false,
+                    p_is_multi_child: userData.is_multi_child_family || false,
+                    p_is_national_merit: userData.is_national_merit || false,
+                });
 
-                if (error) throw error;
+                let processedData = data;
 
-                if (data) {
+                // 2. RPC 실패 시 Fallback: 전체 조회 후 클라이언트 사이드 필터링
+                if (error) {
+                    console.error('RPC failed, falling back to client-side filtering:', error);
+                    const { data: allData, error: fetchError } = await supabase
+                        .from('scholarships')
+                        .select('*')
+                        .eq('is_closed', false);
+
+                    if (fetchError) throw fetchError;
+
+                    // matching API logic과 동일한 필터링 적용
+                    processedData = (allData || []).filter((s: any) => {
+                        // 소득분위 (null이면 제한 없음, 11이면 사용자 미지정)
+                        if (s.max_income_bracket !== null && userData.income_bracket !== 11) {
+                            if (userData.income_bracket > s.max_income_bracket) return false;
+                        }
+                        // 성적
+                        if (s.min_gpa !== null && userData.avg_gpa !== null) {
+                            if (userData.avg_gpa < s.min_gpa) return false;
+                        }
+                        // 학년
+                        if (s.target_grades && s.target_grades.length > 0 && userData.grade) {
+                            if (!s.target_grades.includes(userData.grade)) return false;
+                        }
+                        // 특수 조건
+                        if (s.requires_disability && !userData.has_disability) return false;
+                        if (s.requires_multi_child && !userData.is_multi_child_family) return false;
+                        if (s.requires_national_merit && !userData.is_national_merit) return false;
+
+                        return true;
+                    });
+                }
+
+                if (processedData) {
                     const today = new Date();
-                    const processed = data
+                    const processed = (processedData as any[])
                         .map(s => {
                             let dDay = 0;
                             if (s.deadline) {
@@ -50,13 +90,12 @@ export function HomeFeed({ userData, isLoggedIn, onReset }: HomeFeedProps) {
                                 dDay = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                             }
 
-                            // ScholarshipCardData 타입에 맞게 변환
                             return {
                                 ...s,
                                 d_day: dDay,
                                 is_closed: s.is_closed ?? false,
-                                amount_text: s.amount_text || '', // null 처리
-                                is_scrapped: false, // 기본값, 필요 시 별도 로직으로 scrap 여부 조회
+                                amount_text: s.amount_text || '',
+                                is_scrapped: false,
                             } as ScholarshipCardData;
                         })
                         .sort((a, b) => a.d_day - b.d_day);

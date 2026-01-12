@@ -58,11 +58,35 @@ export default function ProfileEditPage() {
         setUserData(prev => ({ ...prev, ...data }));
     };
 
-    const handleSave = () => {
-        // Save to localStorage (TODO: Save to DB)
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
-        toast.success('정보가 저장되었습니다.');
-        router.push('/home');
+    const handleSave = async () => {
+        setIsLoading(true);
+        try {
+            // 1. DB에 프로필 저장
+            const response = await fetch('/api/users/profile', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    ...userData,
+                    push_enabled: pushEnabled,
+                }),
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || '저장 실패');
+            }
+
+            // 2. localStorage도 업데이트 (오프라인 대비)
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(userData));
+
+            toast.success('정보가 저장되었습니다.');
+            router.push('/home');
+        } catch (error: any) {
+            console.error('Save error:', error);
+            toast.error(error.message || '저장 중 오류가 발생했습니다.');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const selectedDept = departments.find(d => d.id === userData.department_id);

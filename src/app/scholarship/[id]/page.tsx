@@ -6,6 +6,7 @@ import { Header } from '@/components/common';
 import { DetailHeader, DetailContent, DetailStickyActionBar } from '@/components/scholarship';
 import { supabase } from '@/lib/supabase/client';
 import { Database } from '@/types/supabase';
+import { toast } from 'sonner';
 
 type Scholarship = Database['public']['Tables']['scholarships']['Row'] & {
     d_day?: number;
@@ -122,7 +123,10 @@ export default function ScholarshipDetailPage() {
                     .insert({ user_id: userId, scholarship_id: id });
 
                 if (error) throw error;
-                // alert('찜 목록에 추가되었습니다.'); // 너무 방해되므로 생략하거나 토스트 사용
+
+                toast.success('장학금을 스크랩했습니다.', {
+                    description: '마이페이지에서 확인할 수 있습니다.'
+                });
             } else {
                 // Delete Scrap
                 const { error } = await supabase
@@ -132,11 +136,13 @@ export default function ScholarshipDetailPage() {
                     .eq('scholarship_id', id);
 
                 if (error) throw error;
+
+                toast.success('장학금을 스크랩에서 제외했습니다.');
             }
         } catch (error) {
             console.error('Scrap toggle error:', error);
             setIsScrapped(previousState); // Revert on error
-            alert('찜하기 처리에 실패했습니다. 다시 시도해주세요.');
+            toast.error('찜하기 처리에 실패했습니다. 다시 시도해주세요.');
         }
     };
 

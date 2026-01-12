@@ -10,6 +10,7 @@ import {
     PopoverTrigger,
 } from '@/components/ui/popover';
 import { supabase } from '@/lib/supabase/client';
+import { IOSInstallGuideModal } from './IOSInstallGuideModal';
 
 interface HeaderProps {
     /** 
@@ -47,6 +48,7 @@ export function Header({
 }: HeaderProps) {
     const router = useRouter();
     const [isLoggedIn, setIsLoggedIn] = useState(initialIsLoggedIn);
+    const [showPushGuide, setShowPushGuide] = useState(false);
 
     useEffect(() => {
         // 초기 세션 확인
@@ -137,6 +139,12 @@ export function Header({
                                     내 정보 수정
                                 </Link>
                                 <button
+                                    className="px-3 py-2.5 text-sm text-[#212121] hover:bg-[#F8F9FA] rounded-md transition-colors text-left w-full"
+                                    onClick={() => setShowPushGuide(true)}
+                                >
+                                    PUSH 알림 가이드
+                                </button>
+                                <button
                                     className="px-3 py-2.5 text-sm text-[#F44336] hover:bg-[#F8F9FA] rounded-md transition-colors text-left w-full"
                                     onClick={handleLogout}
                                 >
@@ -163,6 +171,9 @@ export function Header({
                     </PopoverContent>
                 </Popover>
             </div>
+
+            {/* PUSH 알림 가이드 모달 */}
+            <IOSInstallGuideModal open={showPushGuide} onClose={() => setShowPushGuide(false)} />
         </header>
     );
 }

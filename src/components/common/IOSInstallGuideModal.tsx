@@ -12,9 +12,9 @@ interface Props {
 
 export function IOSInstallGuideModal({ open, onClose }: Props) {
     const steps = [
-        { id: 1, text: '오른쪽 하단 \u00B7\u00B7\u00B7 클릭' },
-        { id: 2, text: '하단 공유 버튼 클릭' },
-        { id: 3, text: '오른쪽 하단 더 보기(\u00B7\u00B7\u00B7) 클릭' },
+        { id: 1, text: '오른쪽 하단 ··· 클릭' },
+        { id: 2, text: '공유 버튼 클릭' },
+        { id: 3, text: '오른쪽 하단 더 보기(···) 클릭' },
         { id: 4, text: '"홈 화면에 추가" 선택' },
         { id: 5, text: '"사파리를 닫고, 바탕화면에 생긴 앱을 실행해주세요!"', highlight: true },
         { id: 6, text: '앱 실행 후 알림 권한 허용' },
@@ -42,9 +42,9 @@ export function IOSInstallGuideModal({ open, onClose }: Props) {
                                 initial={{ opacity: 0, x: -10 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 transition={{ delay: index * 0.1 }}
-                                className="flex items-start gap-3"
+                                className="flex items-center gap-3"
                             >
-                                <div className="w-6 h-6 rounded-full bg-[#FF6B35] text-white flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">
+                                <div className="w-6 h-6 rounded-full bg-[#FF6B35] text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
                                     {step.id}
                                 </div>
                                 <p className={`text-sm leading-tight ${step.highlight ? 'text-[#FF6B35] font-bold' : 'text-[#424242]'}`}>

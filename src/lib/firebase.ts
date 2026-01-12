@@ -22,8 +22,10 @@ export function getFirebaseApp() {
  * FCM 토큰 발급
  * @returns FCM 토큰 또는 null (권한 거부 시)
  */
-export async function requestFCMToken(): Promise<string | null> {
-    if (typeof window === 'undefined') return null;
+export async function requestFCMToken(): Promise<string> {
+    if (typeof window === 'undefined') {
+        throw new Error('브라우저 환경이 아닙니다');
+    }
 
     console.log('[FCM] Starting token request process...');
     console.log('[FCM] User Agent:', navigator.userAgent);
@@ -34,14 +36,16 @@ export async function requestFCMToken(): Promise<string | null> {
     try {
         permission = await Notification.requestPermission();
         console.log('[FCM] Notification permission status:', permission);
-    } catch (permError) {
+    } catch (permError: any) {
         console.error('[FCM] Permission request error:', permError);
-        return null;
+        throw new Error(`권한 요청 실패: ${permError?.message || '알 수 없는 오류'}`);
     }
 
+    if (permission === 'denied') {
+        throw new Error('알림 권한이 거부되었습니다. 설정에서 허용해주세요.');
+    }
     if (permission !== 'granted') {
-        console.warn('[FCM] Notification permission not granted');
-        return null;
+        throw new Error('알림 권한이 허용되지 않았습니다');
     }
 
     // 2. 파이어베이스 앱 초기화
@@ -49,13 +53,12 @@ export async function requestFCMToken(): Promise<string | null> {
     try {
         app = getFirebaseApp();
         if (!app) {
-            console.error('[FCM] Firebase app initialization returned null');
-            return null;
+            throw new Error('Firebase 앱 초기화 실패 (null)');
         }
         console.log('[FCM] Firebase app initialized');
-    } catch (appError) {
+    } catch (appError: any) {
         console.error('[FCM] Firebase app initialization error:', appError);
-        return null;
+        throw new Error(`Firebase 초기화 실패: ${appError?.message || '알 수 없는 오류'}`);
     }
 
     // 3. 메시징 객체 획득
@@ -63,12 +66,15 @@ export async function requestFCMToken(): Promise<string | null> {
     try {
         messaging = getMessaging(app);
         console.log('[FCM] Messaging instance obtained');
-    } catch (msgError) {
+    } catch (msgError: any) {
         console.error('[FCM] Messaging initialization error:', msgError);
-        return null;
+        throw new Error(`메시징 초기화 실패: ${msgError?.message || '알 수 없는 오류'}`);
     }
 
     const vapidKey = process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY;
+    if (!vapidKey) {
+        throw new Error('VAPID 키가 설정되지 않았습니다');
+    }
 
     // 4. Firebase 전용 서비스 워커 명시적 등록
     let swRegistration: ServiceWorkerRegistration | undefined;
@@ -85,7 +91,7 @@ export async function requestFCMToken(): Promise<string | null> {
                 console.log('[FCM] Waiting for SW to activate...');
                 await new Promise<void>((resolve, reject) => {
                     const timeout = setTimeout(() => {
-                        reject(new Error('SW activation timeout'));
+                        reject(new Error('서비스 워커 활성화 시간 초과'));
                     }, 10000);
 
                     const sw = swRegistration!.installing || swRegistration!.waiting;
@@ -103,27 +109,25 @@ export async function requestFCMToken(): Promise<string | null> {
                 });
                 console.log('[FCM] SW activated');
             }
-        } catch (swError) {
+        } catch (swError: any) {
             console.error('[FCM] SW registration error:', swError);
-            // SW 없이 계속 시도
+            throw new Error(`서비스 워커 등록 실패: ${swError?.message || '알 수 없는 오류'}`);
         }
     } else {
-        console.warn('[FCM] Service Worker not supported');
+        throw new Error('이 브라우저는 서비스 워커를 지원하지 않습니다');
     }
 
     // 5. 토큰 요청
     try {
         console.log('[FCM] Requesting token...');
-        const tokenOptions: { vapidKey?: string; serviceWorkerRegistration?: ServiceWorkerRegistration } = {};
-
-        if (vapidKey) {
-            tokenOptions.vapidKey = vapidKey;
-        }
+        const tokenOptions: { vapidKey: string; serviceWorkerRegistration?: ServiceWorkerRegistration } = {
+            vapidKey: vapidKey,
+        };
         if (swRegistration) {
             tokenOptions.serviceWorkerRegistration = swRegistration;
         }
 
-        console.log('[FCM] Token options:', { hasVapidKey: !!tokenOptions.vapidKey, hasSW: !!tokenOptions.serviceWorkerRegistration });
+        console.log('[FCM] Token options:', { hasVapidKey: true, hasSW: !!tokenOptions.serviceWorkerRegistration });
 
         const token = await getToken(messaging, tokenOptions);
 
@@ -131,15 +135,14 @@ export async function requestFCMToken(): Promise<string | null> {
             console.log('[FCM] Token acquired successfully:', token.substring(0, 30) + '...');
             return token;
         } else {
-            console.error('[FCM] getToken returned null/undefined');
-            return null;
+            throw new Error('토큰 발급 실패 (빈 토큰 반환)');
         }
     } catch (tokenError: any) {
         console.error('[FCM] Token request error:', tokenError);
         console.error('[FCM] Error name:', tokenError?.name);
         console.error('[FCM] Error message:', tokenError?.message);
         console.error('[FCM] Error code:', tokenError?.code);
-        return null;
+        throw new Error(`토큰 요청 실패: ${tokenError?.message || tokenError?.code || '알 수 없는 오류'}`);
     }
 }
 

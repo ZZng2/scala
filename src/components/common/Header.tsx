@@ -181,8 +181,12 @@ export function Header({
                 </Popover>
             </div>
 
-            {/* PUSH 알림 가이드 모달 */}
-            <IOSInstallGuideModal open={showPushGuide} onClose={() => setShowPushGuide(false)} />
+            {/* PUSH 알림 가이드 캐러셀 */}
+            <IOSPushGuideCarousel
+                open={showPushGuide}
+                onClose={() => setShowPushGuide(false)}
+                isStandalone={isStandalone}
+            />
         </header>
     );
 }

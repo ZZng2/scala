@@ -14,6 +14,7 @@ import {
     LoadingScreen,
 } from '@/components/onboarding';
 import { Department, TempUserData } from '@/types';
+import { logAnalyticsEvent } from '@/lib/firebase';
 
 const STORAGE_KEY = 'temp_user_data';
 
@@ -72,7 +73,14 @@ export default function OnboardingPage() {
 
             if (userError) throw userError;
 
-            // 3. Clear local storage upon success
+            // 3. Analytics: Onboarding completion log
+            logAnalyticsEvent('onboarding_complete', {
+                user_id: user.id,
+                department: data.department_name,
+                grade: data.grade
+            });
+
+            // 4. Clear local storage upon success
             localStorage.removeItem(STORAGE_KEY);
         } catch (err) {
             console.error('Failed to save onboarding data:', err);

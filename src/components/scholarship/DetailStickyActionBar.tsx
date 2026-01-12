@@ -3,6 +3,7 @@
 import React from 'react';
 import { Heart, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
+import { logAnalyticsEvent } from '@/lib/firebase';
 
 interface DetailStickyActionBarProps {
     scholarship: {
@@ -39,6 +40,12 @@ export function DetailStickyActionBar({ scholarship, isScrapped = false, onScrap
                     event_type: 'outbound_link_clicked',
                     scholarship_id: scholarship.id,
                 }),
+            });
+
+            // Google Analytics logging
+            logAnalyticsEvent('scholarship_click', {
+                scholarship_id: scholarship.id,
+                scholarship_title: (scholarship as any).title || 'unknown',
             });
         } catch (error) {
             console.error('Analytics logging failed:', error);

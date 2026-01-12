@@ -1,5 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
+import { getAnalytics, isSupported, logEvent, Analytics } from 'firebase/analytics';
 
 const firebaseConfig = {
     apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -88,4 +89,39 @@ export function onForegroundMessage(callback: (payload: any) => void) {
         console.log('Foreground message:', payload);
         callback(payload);
     });
+}
+
+let analytics: Analytics | null = null;
+
+/**
+ * Firebase Analytics 초기화 및 인스턴스 획득
+ */
+export async function getFirebaseAnalytics() {
+    if (typeof window === 'undefined') return null;
+
+    if (analytics) return analytics;
+
+    const supported = await isSupported();
+    if (!supported) return null;
+
+    const app = getFirebaseApp();
+    if (!app) return null;
+
+    analytics = getAnalytics(app);
+    return analytics;
+}
+
+/**
+ * Analytics 이벤트 기록 헬퍼
+ */
+export async function logAnalyticsEvent(eventName: string, params?: object) {
+    try {
+        const analytics = await getFirebaseAnalytics();
+        if (analytics) {
+            logEvent(analytics, eventName, params);
+            console.log(`[Analytics] Event logged: ${eventName}`, params);
+        }
+    } catch (error) {
+        console.error('[Analytics] Error logging event:', error);
+    }
 }

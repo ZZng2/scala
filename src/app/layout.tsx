@@ -40,6 +40,9 @@ export const viewport: Viewport = {
   themeColor: "#FF6B35",
 };
 
+import FirebaseAnalytics from "@/components/common/FirebaseAnalytics";
+import { Suspense } from "react";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -61,6 +64,9 @@ export default function RootLayout({
         suppressHydrationWarning
         className={`${inter.variable} font-sans antialiased bg-white text-[#212121]`}
       >
+        <Suspense fallback={null}>
+          <FirebaseAnalytics />
+        </Suspense>
         {children}
         <Toaster position="top-center" richColors />
       </body>

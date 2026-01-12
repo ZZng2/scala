@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Header } from '@/components/common';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { supabase } from '@/lib/supabase/client';
 import {
     Select,
     SelectContent,
@@ -33,25 +34,49 @@ export default function ProfileEditPage() {
     const [pushEnabled, setPushEnabled] = useState(true);
     const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-        // Check auth
-        const token = localStorage.getItem('auth_token');
-        if (!token) {
-            router.push('/login');
-            return;
-        }
+    const [userId, setUserId] = useState<string | null>(null);
 
-        // Load user data
-        const saved = localStorage.getItem(STORAGE_KEY);
-        if (saved) {
+    useEffect(() => {
+        const loadProfile = async () => {
             try {
-                const parsed = JSON.parse(saved) as TempUserData;
-                setUserData(parsed);
-            } catch (e) {
-                console.error("Failed to parse local storage", e);
+                // 1. Auth Check
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) {
+                    router.push('/login');
+                    return;
+                }
+                setUserId(user.id);
+
+                // 2. Fetch Profile from API
+                const response = await fetch(`/api/users/profile?userId=${user.id}`);
+                const { data } = await response.json();
+
+                if (data) {
+                    // DB 데이터 우선 사용
+                    setUserData(data);
+                    if (typeof data.push_enabled !== 'undefined') {
+                        setPushEnabled(data.push_enabled);
+                    }
+                } else {
+                    // DB에 없으면 로컬 스토리지 확인 (Fallback)
+                    const saved = localStorage.getItem(STORAGE_KEY);
+                    if (saved) {
+                        try {
+                            const parsed = JSON.parse(saved) as TempUserData;
+                            setUserData(parsed);
+                        } catch (e) {
+                            console.error("Failed to parse local storage", e);
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading profile:', error);
+            } finally {
+                setIsLoading(false);
             }
-        }
-        setIsLoading(false);
+        };
+
+        loadProfile();
     }, [router]);
 
     const updateData = (data: Partial<TempUserData>) => {
@@ -61,11 +86,17 @@ export default function ProfileEditPage() {
     const handleSave = async () => {
         setIsLoading(true);
         try {
+            if (!userId) {
+                toast.error('로그인이 필요합니다.');
+                return;
+            }
+
             // 1. DB에 프로필 저장
             const response = await fetch('/api/users/profile', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
+                    userId, // userId 추가
                     ...userData,
                     push_enabled: pushEnabled,
                 }),

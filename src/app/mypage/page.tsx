@@ -39,6 +39,7 @@ export default function MyPage() {
         is_multi_child_family: false,
         is_national_merit: false,
     });
+    const [pushEnabled, setPushEnabled] = useState(true);
 
     useEffect(() => {
         const loadProfile = async () => {
@@ -75,6 +76,17 @@ export default function MyPage() {
                         is_national_merit: profile.is_national_merit || false,
                     });
                 }
+
+                // 3. Fetch Push Settings from users table
+                const { data: userData, error: userError } = await supabase
+                    .from('users')
+                    .select('push_enabled')
+                    .eq('id', user.id)
+                    .single();
+
+                if (!userError && userData) {
+                    setPushEnabled(userData.push_enabled ?? true);
+                }
             } catch (error) {
                 console.error('Error loading profile:', error);
                 toast.error('프로필 정보를 불러오는데 실패했습니다.');
@@ -107,7 +119,7 @@ export default function MyPage() {
 
         setIsSaving(true);
         try {
-            // Validate & Transform
+            // 1. Update Profile
             const payload = {
                 user_id: userId,
                 department_name: formData.department_name,
@@ -123,14 +135,22 @@ export default function MyPage() {
                 updated_at: new Date().toISOString(),
             };
 
-            const { error } = await supabase
+            const { error: profileError } = await supabase
                 .from('user_profiles')
                 .upsert(payload, { onConflict: 'user_id' });
 
-            if (error) throw error;
+            if (profileError) throw profileError;
+
+            // 2. Update Push Settings (users table)
+            const { error: userError } = await supabase
+                .from('users')
+                .update({ push_enabled: pushEnabled })
+                .eq('id', userId);
+
+            if (userError) throw userError;
 
             toast.success('저장되었습니다.', {
-                description: '맞춤 장학금 정보가 갱신됩니다.'
+                description: '정보가 성공적으로 갱신되었습니다.'
             });
             router.refresh();
 
@@ -292,8 +312,27 @@ export default function MyPage() {
                         </div>
                     </section>
 
-                    {/* 추가 자격 */}
-                    <section className="space-y-4">
+                </Select>
+        </div>
+                    </section >
+
+        {/* Push Notification Toggle */ }
+        < div className = "flex items-center justify-between p-4 bg-[#F8F9FA] rounded-lg" >
+                        <div>
+                            <p className="font-semibold text-[#212121]">PUSH 알림</p>
+                            <p className="text-sm text-[#757575]">새 장학금이 등록되면 알려드려요</p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setPushEnabled(!pushEnabled)}
+                            className={`w-12 h-7 rounded-full transition-colors relative ${pushEnabled ? "bg-[#FF6B35]" : "bg-[#E0E0E0]"}`}
+                        >
+                            <div className={`absolute top-0.5 w-6 h-6 rounded-full bg-white shadow transition-transform ${pushEnabled ? "translate-x-5" : "translate-x-0.5"}`} />
+                        </button>
+                    </div >
+
+        {/* 추가 자격 */ }
+        < section className = "space-y-4" >
                         <h3 className="text-lg font-bold text-[#212121]">추가 자격</h3>
 
                         <div className="space-y-3">
@@ -333,13 +372,13 @@ export default function MyPage() {
                                 <Label htmlFor="is_national_merit" className="font-normal cursor-pointer">국가유공자 본인/자녀</Label>
                             </div>
                         </div>
-                    </section>
+                    </section >
 
-                    <Button type="submit" className="w-full h-12 text-lg font-bold mt-8" disabled={isSaving}>
-                        {isSaving ? '저장 중...' : '저장하기'}
-                    </Button>
-                </form>
-            </main>
-        </div>
+        <Button type="submit" className="w-full h-12 text-lg font-bold mt-8" disabled={isSaving}>
+            {isSaving ? '저장 중...' : '저장하기'}
+        </Button>
+                </form >
+            </main >
+        </div >
     );
 }

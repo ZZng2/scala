@@ -90,6 +90,9 @@ export type Database = {
                     scholarship_id: string | null
                     sent_at: string | null
                     target_user_count: number
+                    sent_count: number | null
+                    failure_count: number | null
+                    status: string | null
                     title: string
                     clicked_count: number | null
                 }
@@ -100,6 +103,9 @@ export type Database = {
                     scholarship_id?: string | null
                     sent_at?: string | null
                     target_user_count?: number
+                    sent_count?: number | null
+                    failure_count?: number | null
+                    status?: string | null
                     title: string
                     clicked_count?: number | null
                 }
@@ -110,6 +116,9 @@ export type Database = {
                     scholarship_id?: string | null
                     sent_at?: string | null
                     target_user_count?: number
+                    sent_count?: number | null
+                    failure_count?: number | null
+                    status?: string | null
                     title?: string
                     clicked_count?: number | null
                 }

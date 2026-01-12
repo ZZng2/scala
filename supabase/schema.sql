@@ -90,6 +90,9 @@ CREATE TABLE IF NOT EXISTS public.push_logs (
   title TEXT NOT NULL,
   body TEXT NOT NULL,
   target_user_count INTEGER NOT NULL DEFAULT 0,
+  sent_count INTEGER DEFAULT 0,
+  failure_count INTEGER DEFAULT 0,
+  status TEXT DEFAULT 'pending',
   sent_at TIMESTAMPTZ DEFAULT NOW(),
   clicked_count INTEGER DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW()

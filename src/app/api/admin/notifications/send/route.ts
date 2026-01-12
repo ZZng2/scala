@@ -1,4 +1,4 @@
-import { createAdminClient, isAdmin } from '@/lib/supabase/server';
+import { createClient, createAdminClient, isAdmin } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 import { sendPushNotification } from '@/lib/fcm-admin';
 

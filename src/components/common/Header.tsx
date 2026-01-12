@@ -10,7 +10,7 @@ import {
     PopoverTrigger,
 } from '@/components/ui/popover';
 import { supabase } from '@/lib/supabase/client';
-import { IOSInstallGuideModal } from './IOSInstallGuideModal';
+import { IOSPushGuideCarousel } from './IOSPushGuideCarousel';
 
 interface HeaderProps {
     /** 
@@ -49,6 +49,15 @@ export function Header({
     const router = useRouter();
     const [isLoggedIn, setIsLoggedIn] = useState(initialIsLoggedIn);
     const [showPushGuide, setShowPushGuide] = useState(false);
+    const [isStandalone, setIsStandalone] = useState(false);
+
+    useEffect(() => {
+        // Check if running as PWA
+        if (typeof window !== 'undefined') {
+            const standalone = window.matchMedia('(display-mode: standalone)').matches;
+            setIsStandalone(standalone);
+        }
+    }, []);
 
     useEffect(() => {
         // 초기 세션 확인

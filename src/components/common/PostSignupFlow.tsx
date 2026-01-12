@@ -4,7 +4,7 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useDeviceDetect } from '@/lib/hooks/useDeviceDetect';
 import { PushPermissionModal } from './PushPermissionModal';
-import { IOSInstallGuideModal } from './IOSInstallGuideModal';
+import { IOSPushGuideCarousel } from './IOSPushGuideCarousel';
 import { IOSPushPermissionModal } from './IOSPushPermissionModal';
 
 function PostSignupFlowInternal() {

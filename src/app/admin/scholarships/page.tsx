@@ -96,7 +96,7 @@ export default function AdminScholarshipsPage() {
             const response = await fetch('/api/scholarships');
             if (!response.ok) throw new Error('Failed to fetch scholarships');
             const data = await response.json();
-            console.log('Fetched scholarships:', data);
+
             setScholarships(data.data || []);
         } catch (error) {
             console.error('Error fetching scholarships:', error);
@@ -269,7 +269,7 @@ export default function AdminScholarshipsPage() {
 
     // 폼 제출 핸들러
     const handleSubmit = async () => {
-        console.log('Form submission started', formData);
+
 
         // 필수 필드 검증
         if (!formData.title || !formData.category || !formData.amount_text || !formData.deadline) {
@@ -292,7 +292,7 @@ export default function AdminScholarshipsPage() {
 
             const method = editingScholarship ? 'PATCH' : 'POST';
 
-            console.log(`Sending ${method} request to ${url}`);
+
 
             const response = await fetch(url, {
                 method: method,
@@ -301,7 +301,7 @@ export default function AdminScholarshipsPage() {
             });
 
             const result = await response.json();
-            console.log('API Response:', result);
+
 
             if (!response.ok) {
                 throw new Error(result.error || (editingScholarship ? '수정 실패' : '등록 실패'));

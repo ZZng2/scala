@@ -27,15 +27,13 @@ export async function requestFCMToken(): Promise<string> {
         throw new Error('브라우저 환경이 아닙니다');
     }
 
-    console.log('[FCM] Starting token request process...');
-    console.log('[FCM] User Agent:', navigator.userAgent);
-    console.log('[FCM] VAPID Key present:', !!process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY);
+
 
     // 1. 알림 권한 확인 및 요청
     let permission: NotificationPermission;
     try {
         permission = await Notification.requestPermission();
-        console.log('[FCM] Notification permission status:', permission);
+
     } catch (permError: any) {
         console.error('[FCM] Permission request error:', permError);
         throw new Error(`권한 요청 실패: ${permError?.message || '알 수 없는 오류'}`);
@@ -55,7 +53,7 @@ export async function requestFCMToken(): Promise<string> {
         if (!app) {
             throw new Error('Firebase 앱 초기화 실패 (null)');
         }
-        console.log('[FCM] Firebase app initialized');
+
     } catch (appError: any) {
         console.error('[FCM] Firebase app initialization error:', appError);
         throw new Error(`Firebase 초기화 실패: ${appError?.message || '알 수 없는 오류'}`);
@@ -65,7 +63,7 @@ export async function requestFCMToken(): Promise<string> {
     let messaging;
     try {
         messaging = getMessaging(app);
-        console.log('[FCM] Messaging instance obtained');
+
     } catch (msgError: any) {
         console.error('[FCM] Messaging initialization error:', msgError);
         throw new Error(`메시징 초기화 실패: ${msgError?.message || '알 수 없는 오류'}`);
@@ -80,15 +78,15 @@ export async function requestFCMToken(): Promise<string> {
     let swRegistration: ServiceWorkerRegistration | undefined;
     if ('serviceWorker' in navigator) {
         try {
-            console.log('[FCM] Registering firebase-messaging-sw.js...');
+
             swRegistration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
                 scope: '/'
             });
-            console.log('[FCM] Firebase SW registered, state:', swRegistration.active?.state || swRegistration.installing?.state || swRegistration.waiting?.state);
+
 
             // 서비스 워커가 활성화될 때까지 대기 (최대 10초)
             if (!swRegistration.active) {
-                console.log('[FCM] Waiting for SW to activate...');
+
                 await new Promise<void>((resolve, reject) => {
                     const timeout = setTimeout(() => {
                         reject(new Error('서비스 워커 활성화 시간 초과'));
@@ -107,7 +105,7 @@ export async function requestFCMToken(): Promise<string> {
                         resolve();
                     }
                 });
-                console.log('[FCM] SW activated');
+
             }
         } catch (swError: any) {
             console.error('[FCM] SW registration error:', swError);
@@ -119,7 +117,7 @@ export async function requestFCMToken(): Promise<string> {
 
     // 5. 토큰 요청
     try {
-        console.log('[FCM] Requesting token...');
+
         const tokenOptions: { vapidKey: string; serviceWorkerRegistration?: ServiceWorkerRegistration } = {
             vapidKey: vapidKey,
         };
@@ -127,12 +125,12 @@ export async function requestFCMToken(): Promise<string> {
             tokenOptions.serviceWorkerRegistration = swRegistration;
         }
 
-        console.log('[FCM] Token options:', { hasVapidKey: true, hasSW: !!tokenOptions.serviceWorkerRegistration });
+
 
         const token = await getToken(messaging, tokenOptions);
 
         if (token) {
-            console.log('[FCM] Token acquired successfully:', token.substring(0, 30) + '...');
+
             return token;
         } else {
             throw new Error('토큰 발급 실패 (빈 토큰 반환)');
@@ -157,7 +155,7 @@ export function onForegroundMessage(callback: (payload: any) => void) {
 
     const messaging = getMessaging(app);
     return onMessage(messaging, (payload) => {
-        console.log('Foreground message:', payload);
+
         callback(payload);
     });
 }
@@ -190,7 +188,7 @@ export async function logAnalyticsEvent(eventName: string, params?: object) {
         const analytics = await getFirebaseAnalytics();
         if (analytics) {
             logEvent(analytics, eventName, params);
-            console.log(`[Analytics] Event logged: ${eventName}`, params);
+
         }
     } catch (error) {
         console.error('[Analytics] Error logging event:', error);

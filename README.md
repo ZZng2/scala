@@ -216,19 +216,10 @@ npm run dev
 
 ## ⏳ 남은 작업 (Phase 6+)
 
-### Phase 6: PWA & 배포
-- [ ] `next-pwa` 설정
-- [ ] Web Manifest (`manifest.json`)
-- [ ] Service Worker
-- [ ] Vercel 배포
-
-### 추가 작업
-- [ ] Supabase Auth 실제 연동 (현재 Mock)
-- [ ] FCM 실제 연동
-- [ ] iOS 설치 가이드 모달
-- [ ] Android 알림 권한 요청
-- [ ] Feature 2-1: PUSH 알림창 UI
+### Phase 6: 추가 최적화 (Optional)
 - [ ] E2E 테스트 (Playwright)
+- [ ] Lighthouse Performance 최적화
+- [ ] 다국어 지원 (i18n)
 
 ---
 

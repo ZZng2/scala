@@ -13,7 +13,6 @@ export function useDeviceDetect() {
 
     useEffect(() => {
         const userAgent = navigator.userAgent;
-        console.log('[DeviceDetect] User Agent:', userAgent);
 
         // Android 먼저 체크 (Android User Agent에도 'Safari'가 포함될 수 있음)
         const isAndroid = /Android/i.test(userAgent);
@@ -29,8 +28,6 @@ export function useDeviceDetect() {
 
         // 인앱 브라우저 감지 (카카오톡, 인스타그램, 페이스북 등)
         const isInAppBrowser = /KAKAOTALK|FBAN|FBAV|Instagram|Line|NAVER|Twitter/i.test(userAgent);
-
-        console.log('[DeviceDetect] Result:', { isIOS, isAndroid, isSafari, isStandalone, isInAppBrowser });
 
         setDevice({ isIOS, isAndroid, isSafari, isStandalone, isInAppBrowser });
     }, []);

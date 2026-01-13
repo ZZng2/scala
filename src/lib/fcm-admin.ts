@@ -12,7 +12,6 @@ if (!admin.apps.length) {
             admin.initializeApp({
                 credential: admin.credential.cert(serviceAccount),
             });
-            console.log('[FCM-Admin] Firebase Admin initialized successfully');
         }
     } catch (error) {
         console.error('[FCM-Admin] Firebase Admin initialization error:', error);

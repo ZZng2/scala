@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
 export async function GET(request: Request) {
-    console.log('Admin Dashboard API Called');
+
 
     // 환경변수 체크
     if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -23,7 +23,7 @@ export async function GET(request: Request) {
 
         const adminClient = createAdminClient();
 
-        console.log('Admin Access Validated');
+
 
         // 2. Fetch Metrics (Using Admin Client to bypass RLS)
         // 2.1 Total Users

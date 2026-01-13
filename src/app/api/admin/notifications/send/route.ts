@@ -154,7 +154,6 @@ export async function POST(request: Request) {
             .map(u => u.users?.fcm_token)
             .filter(Boolean);
 
-        console.log(`[AdminPush] Sending to ${tokens.length} users (Filtered from ${count} targeting)`);
 
         let successCount = 0;
         let failureCount = 0;

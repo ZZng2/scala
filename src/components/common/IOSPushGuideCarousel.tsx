@@ -30,9 +30,20 @@ export function IOSPushGuideCarousel({ open, onClose, isStandalone = false }: Pr
                             아이폰을 사용 중이시네요
                         </h2>
                     </div>
-                    <p className="text-sm text-[#757575] mb-8 leading-relaxed whitespace-pre-line">
-                        Apple 정책상 홈 화면에 추가해야만{'\n'}실시간 알림을 드릴 수 있어요!
+                    <p className="text-sm text-[#757575] mb-4 leading-relaxed whitespace-pre-line">
+                        Apple 정책상 홈 화면에 추가해야만{'\\n'}실시간 알림을 드릴 수 있어요!
                     </p>
+
+                    {/* Safari 안내 문구 */}
+                    <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-6">
+                        <p className="text-sm text-amber-800 font-medium">
+                            ⚠️ <span className="font-bold">Safari</span>로 열어서 홈 화면에 추가하세요!
+                        </p>
+                        <p className="text-xs text-amber-600 mt-1">
+                            Chrome, 카카오톡 등 다른 브라우저에서는 불가능해요.
+                        </p>
+                    </div>
+
 
                     <div className="space-y-4 mb-8">
                         {installSteps.map((step) => (

@@ -17,6 +17,7 @@ import { LiveBenefitTicker } from './LiveBenefitTicker';
  */
 export function BenefitsSection() {
     const [signupCount, setSignupCount] = useState(13);
+    const [incomeFreeCount, setIncomeFreeCount] = useState(0);
 
     useEffect(() => {
         // 회원가입 수 조회
@@ -24,6 +25,12 @@ export function BenefitsSection() {
             .then(res => res.json())
             .then(data => setSignupCount(data.count))
             .catch(() => setSignupCount(13)); // 에러 시 기본값
+
+        // 소득 무관 장학금 수 조회
+        fetch('/api/scholarships?income_free=true')
+            .then(res => res.json())
+            .then(data => setIncomeFreeCount(data.count || data.length || 0))
+            .catch(() => setIncomeFreeCount(0));
     }, []);
     return (
         <div className="bg-white pb-32"> {/* Extra padding for sticky bar */}
@@ -32,7 +39,9 @@ export function BenefitsSection() {
                 {/* Headline */}
                 <h2 className="font-bold text-[#212121] mb-12 leading-tight">
                     <span className="block text-3xl md:text-5xl mb-3">어? 나도 해당되네?</span>
-                    <span className="block text-xl md:text-3xl text-[#757575]">의외의 <span className="text-[#FF6B35]">용돈, 알림</span>으로 확인하세요.</span>
+                    <span className="block text-xl md:text-3xl text-[#757575]">
+                        <span className="text-[#FF6B35]">소득 무관</span> 장학금 현재 <span className="text-[#FF6B35]">{incomeFreeCount}개</span>
+                    </span>
                 </h2>
 
                 {/* iPhone Mockup */}

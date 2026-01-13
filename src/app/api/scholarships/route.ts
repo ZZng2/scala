@@ -10,10 +10,28 @@ export async function GET(request: Request) {
         const { searchParams } = new URL(request.url);
         const category = searchParams.get('category');
         const isOpen = searchParams.get('isOpen');
+        const incomeFree = searchParams.get('income_free');
         const limit = parseInt(searchParams.get('limit') || '100'); // 기본값 50 -> 100 으로 상향 (한번에 많이 볼 수 있게)
         const offset = parseInt(searchParams.get('offset') || '0');
 
         const supabase = await createClient();
+
+        // 소득 무관 장학금 개수만 반환하는 경우
+        if (incomeFree === 'true') {
+            const { count, error } = await supabase
+                .from('scholarships')
+                .select('*', { count: 'exact', head: true })
+                .eq('is_closed', false)
+                .gte('deadline', new Date().toISOString().split('T')[0])
+                .or('max_income_bracket.is.null,max_income_bracket.gte.10');
+
+            if (error) {
+                console.error('Error counting income-free scholarships:', error);
+                return NextResponse.json({ error: error.message }, { status: 500 });
+            }
+
+            return NextResponse.json({ count: count || 0 });
+        }
 
         let query = supabase
             .from('scholarships')

@@ -101,11 +101,49 @@ export async function POST(request: Request) {
 
         // 5. Send Actual Push Notification via FCM
 
-        // 유효한 fcm_token을 가진 유저 목록 가져오기 (필터링 조건 유지)
-        const { data: users, error: userError } = await query
+        // 유효한 fcm_token을 가진 유저 목록 가져오기 (필터링 조건 재적용)
+        let tokenQuery = adminSupabase
+            .from('user_profiles')
             .select('user_id, users!inner(fcm_token, push_enabled)')
             .not('users.fcm_token', 'is', null)
             .eq('users.push_enabled', true);
+
+        // 필터링 조건 다시 적용
+        if (target_depts && Array.isArray(target_depts) && target_depts.length > 0) {
+            tokenQuery = tokenQuery.in('department_name', target_depts);
+        } else if (target_dept) {
+            tokenQuery = tokenQuery.ilike('department_name', `%${target_dept}%`);
+        }
+
+        if (target_grade && Array.isArray(target_grade) && target_grade.length > 0) {
+            tokenQuery = tokenQuery.in('grade', target_grade);
+        }
+
+        if (min_gpa !== undefined && min_gpa !== null && min_gpa > 0) {
+            tokenQuery = tokenQuery.gte('prev_semester_gpa', min_gpa);
+        }
+
+        if (max_income_bracket !== undefined && max_income_bracket !== null) {
+            tokenQuery = tokenQuery.lte('income_bracket', max_income_bracket);
+        }
+
+        if (target_regions && Array.isArray(target_regions) && target_regions.length > 0) {
+            tokenQuery = tokenQuery.in('hometown_region', target_regions);
+        }
+
+        if (special_conditions) {
+            if (special_conditions.is_multi_child) {
+                tokenQuery = tokenQuery.eq('is_multi_child_family', true);
+            }
+            if (special_conditions.has_disability) {
+                tokenQuery = tokenQuery.eq('has_disability', true);
+            }
+            if (special_conditions.is_national_merit) {
+                tokenQuery = tokenQuery.eq('is_national_merit', true);
+            }
+        }
+
+        const { data: users, error: userError } = await tokenQuery;
 
         if (userError) {
             console.error('Failed to fetch user tokens:', userError);

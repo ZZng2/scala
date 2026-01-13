@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Send, Search, Check, X, ChevronDown, ChevronUp, AlertCircle } from 'lucide-react';
+import { Loader2, Send, Search, Check, X, ChevronDown, ChevronUp, AlertCircle, Users } from 'lucide-react';
 import { toast } from 'sonner';
 import { departments as DEPARTMENTS_DATA, REGIONS } from '@/data/departments';
 
@@ -44,6 +44,45 @@ export default function AdminNotificationsPage() {
     // UI State for Department Selector
     const [deptSearchQuery, setDeptSearchQuery] = useState('');
     const [isDeptListOpen, setIsDeptListOpen] = useState(false);
+
+    // Preview Count State
+    const [targetCount, setTargetCount] = useState<number | null>(null);
+    const [countLoading, setCountLoading] = useState(false);
+
+    // Fetch target count
+    const fetchTargetCount = useCallback(async () => {
+        setCountLoading(true);
+        try {
+            const response = await fetch('/api/admin/notifications/preview', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    target_depts: targetDepts.length > 0 ? targetDepts : undefined,
+                    target_grade: targetGrade.length > 0 ? targetGrade.map(Number) : undefined,
+                    min_gpa: minGpa ? parseFloat(minGpa) : undefined,
+                    max_income_bracket: maxIncome ? parseInt(maxIncome) : undefined,
+                    target_regions: targetRegions.length > 0 ? targetRegions : undefined,
+                    special_conditions: specialConditions,
+                }),
+            });
+            const result = await response.json();
+            if (response.ok) {
+                setTargetCount(result.target_count);
+            }
+        } catch (error) {
+            console.error('Failed to fetch target count:', error);
+        } finally {
+            setCountLoading(false);
+        }
+    }, [targetDepts, targetGrade, minGpa, maxIncome, targetRegions, specialConditions]);
+
+    // Fetch count on mount and when targeting changes (debounced)
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            fetchTargetCount();
+        }, 500);
+        return () => clearTimeout(timer);
+    }, [fetchTargetCount]);
 
     // Fetch Scholarships for linkage
     useEffect(() => {
@@ -457,6 +496,30 @@ export default function AdminNotificationsPage() {
                                         <li>조건 없음 (전체 발송)</li>
                                     }
                                 </ul>
+                            </div>
+
+                            {/* Target Count Display */}
+                            <div className="p-4 bg-white rounded-xl border-2 border-[#FF6B35]/30 mt-4">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <Users size={20} className="text-[#FF6B35]" />
+                                        <span className="font-semibold text-[#212121]">발송 대상</span>
+                                    </div>
+                                    <div className="text-right">
+                                        {countLoading ? (
+                                            <Loader2 className="w-5 h-5 animate-spin text-[#FF6B35]" />
+                                        ) : (
+                                            <span className="text-2xl font-bold text-[#FF6B35]">
+                                                {targetCount !== null ? targetCount : '-'}명
+                                            </span>
+                                        )}
+                                    </div>
+                                </div>
+                                {targetCount === 0 && !countLoading && (
+                                    <p className="text-xs text-red-500 mt-2">
+                                        ⚠️ 조건에 맞는 푸시 가능 유저가 없습니다.
+                                    </p>
+                                )}
                             </div>
 
                             <Button

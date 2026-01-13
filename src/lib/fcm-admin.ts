@@ -41,11 +41,11 @@ export async function sendPushNotification(
 
     const message: admin.messaging.MulticastMessage = {
         tokens: uniqueTokens,
-        notification: {
+        // notification 필드를 제거하고 data만 사용
+        // 이렇게 하면 서비스 워커에서만 알림을 표시하여 중복 방지
+        data: {
             title,
             body,
-        },
-        data: {
             scholarshipId: scholarshipId || '',
             url: scholarshipId ? `/scholarship/${scholarshipId}` : '/home',
         },
@@ -53,10 +53,6 @@ export async function sendPushNotification(
             fcmOptions: {
                 link: scholarshipId ? `/scholarship/${scholarshipId}` : '/home',
             },
-            notification: {
-                icon: '/icon-192.png',
-                badge: '/icon-192.png',
-            }
         },
     };
 

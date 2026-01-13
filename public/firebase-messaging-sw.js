@@ -8,9 +8,10 @@ const messaging = firebase.messaging();
 messaging.onBackgroundMessage((payload) => {
     console.log('[firebase-messaging-sw.js] Received background message ', payload);
 
-    const notificationTitle = payload.notification.title;
+    // data-only 메시지에서 title/body 읽기
+    const notificationTitle = payload.data?.title || '새 알림';
     const notificationOptions = {
-        body: payload.notification.body,
+        body: payload.data?.body || '',
         icon: '/icon-192.png',
         badge: '/icon-192.png',
         data: {

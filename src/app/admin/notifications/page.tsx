@@ -17,6 +17,11 @@ interface Scholarship {
     id: string;
     title: string;
     category: string | null;
+    target_departments?: string[] | null;
+    target_grades?: number[] | null;
+    min_gpa?: number | null;
+    max_income_bracket?: number | null;
+    target_regions?: string[] | null;
 }
 
 export default function AdminNotificationsPage() {
@@ -89,7 +94,7 @@ export default function AdminNotificationsPage() {
         const fetchScholarships = async () => {
             const { data, error } = await supabase
                 .from('scholarships')
-                .select('id, title, category')
+                .select('id, title, category, target_departments, target_grades, min_gpa, max_income_bracket, target_regions')
                 .eq('is_closed', false)
                 .order('created_at', { ascending: false })
                 .limit(20);
@@ -98,6 +103,33 @@ export default function AdminNotificationsPage() {
         };
         fetchScholarships();
     }, []);
+
+    // Auto-fill targeting when scholarship is selected
+    useEffect(() => {
+        if (selectedScholarship === 'none') {
+            return;
+        }
+
+        const scholarship = scholarships.find(s => s.id === selectedScholarship);
+        if (scholarship) {
+            // Auto-fill targeting fields from scholarship data
+            if (scholarship.target_departments && scholarship.target_departments.length > 0) {
+                setTargetDepts(scholarship.target_departments);
+            }
+            if (scholarship.target_grades && scholarship.target_grades.length > 0) {
+                setTargetGrade(scholarship.target_grades.map(String));
+            }
+            if (scholarship.min_gpa !== null && scholarship.min_gpa !== undefined) {
+                setMinGpa(scholarship.min_gpa.toString());
+            }
+            if (scholarship.max_income_bracket !== null && scholarship.max_income_bracket !== undefined) {
+                setMaxIncome(scholarship.max_income_bracket.toString());
+            }
+            if (scholarship.target_regions && scholarship.target_regions.length > 0) {
+                setTargetRegions(scholarship.target_regions);
+            }
+        }
+    }, [selectedScholarship, scholarships]);
 
     // Department Handlers (Same as AdminScholarshipsPage)
     const handleDeptKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {

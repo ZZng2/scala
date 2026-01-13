@@ -79,7 +79,7 @@ export function BenefitsSection() {
                 <h2 ref={headlineRef} className="font-bold text-[#212121] mb-12 leading-tight">
                     <span className="block text-3xl md:text-5xl mb-3">어? 나도 해당되네?</span>
                     <span className="block text-xl md:text-3xl text-[#757575]">
-                        <span className="text-[#FF6B35]">소득 무관</span> 장학금 <span className="text-[#FF6B35]">현재</span> <span className="text-[#FF6B35] font-bold tabular-nums">{displayCount}</span>개
+                        <span className="text-[#FF6B35]">소득 무관</span> 장학금 <span className="text-[#FF6B35]">현재</span> <span className="text-[#FF6B35] font-bold tabular-nums">{displayCount}</span><span className="text-[#FF6B35]">개</span>
                     </span>
                 </h2>
 

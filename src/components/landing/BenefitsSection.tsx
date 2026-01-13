@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import { Filter, Bell, CalendarCheck } from 'lucide-react';
 import { LiveBenefitTicker } from './LiveBenefitTicker';
@@ -18,6 +18,9 @@ import { LiveBenefitTicker } from './LiveBenefitTicker';
 export function BenefitsSection() {
     const [signupCount, setSignupCount] = useState(13);
     const [incomeFreeCount, setIncomeFreeCount] = useState(0);
+    const [displayCount, setDisplayCount] = useState(0);
+    const [hasAnimated, setHasAnimated] = useState(false);
+    const headlineRef = useRef<HTMLHeadingElement>(null);
 
     useEffect(() => {
         // 회원가입 수 조회
@@ -32,15 +35,51 @@ export function BenefitsSection() {
             .then(data => setIncomeFreeCount(data.count || data.length || 0))
             .catch(() => setIncomeFreeCount(0));
     }, []);
+
+    // Intersection Observer로 스크롤 시 애니메이션 트리거
+    useEffect(() => {
+        if (!headlineRef.current || hasAnimated || incomeFreeCount === 0) return;
+
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting && !hasAnimated) {
+                        setHasAnimated(true);
+                        // 카운팅 애니메이션 (0 -> incomeFreeCount)
+                        const duration = 1000; // 1초
+                        const steps = 30;
+                        const increment = incomeFreeCount / steps;
+                        let current = 0;
+
+                        const timer = setInterval(() => {
+                            current += increment;
+                            if (current >= incomeFreeCount) {
+                                setDisplayCount(incomeFreeCount);
+                                clearInterval(timer);
+                            } else {
+                                setDisplayCount(Math.floor(current));
+                            }
+                        }, duration / steps);
+                    }
+                });
+            },
+            { threshold: 0.5 } // 50% 보일 때 트리거
+        );
+
+        observer.observe(headlineRef.current);
+
+        return () => observer.disconnect();
+    }, [incomeFreeCount, hasAnimated]);
+
     return (
         <div className="bg-white pb-32"> {/* Extra padding for sticky bar */}
             <div className="max-w-[1024px] mx-auto px-6 py-16 md:py-24 flex flex-col items-center text-center">
 
                 {/* Headline */}
-                <h2 className="font-bold text-[#212121] mb-12 leading-tight">
+                <h2 ref={headlineRef} className="font-bold text-[#212121] mb-12 leading-tight">
                     <span className="block text-3xl md:text-5xl mb-3">어? 나도 해당되네?</span>
                     <span className="block text-xl md:text-3xl text-[#757575]">
-                        <span className="text-[#FF6B35]">소득 무관</span> 장학금 현재 <span className="text-[#FF6B35]">{incomeFreeCount}개</span>
+                        <span className="text-[#FF6B35]">소득 무관</span> 장학금 <span className="text-[#FF6B35]">현재</span> <span className="text-[#FF6B35] font-bold tabular-nums">{displayCount}</span>개
                     </span>
                 </h2>
 
